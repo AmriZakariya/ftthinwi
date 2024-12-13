@@ -21,7 +21,6 @@ class ResponseGetDemandesList {
   }
 }
 
-
 class Demand {
   List<Demande> demandes;
 
@@ -29,254 +28,259 @@ class Demand {
 
   factory Demand.fromJson(Map<String, dynamic> json) {
     return Demand(
-      demandes: (json['demandes'] as List).map((i) => Demande.fromJson(i)).toList(),
+      demandes: (json['demandes'] as List)
+          .map((i) => Demande.fromJson(i))
+          .toList(),
     );
   }
 }
 
-
 class Demande {
   String? id;
-  String? ref;
-  String? type;
-  String? caseId;
   String? userId;
-  String? prestataireId;
-  String? client;
-  String? telephone;
-  String? accesReseau;
-  String? activitesService;
-  String? typeProbleme;
-  String? description;
-  String? numLigne;
-  String? nomPrenom;
-  String? numContact;
-  String? adresse;
-  String? ville;
-  String? nomPlanTarifaire;
-  String? dateIncident;
-  String? situationAbonnement;
-  String? routeur;
-  String? power;
-  String? pon;
-  String? los;
-  String? internet;
-  String? wifi;
-  String? cablageRedemarrageEquipement;
-  String? verificationCablagePto;
+  String? numero;
+  String? parent;
+  String? numeroLigne;
   String? plaqueId;
+  String? groupeAffectation;
+  String? idCommande;
+  String? consommateur;
+  String? telMobile;
+  String? createdSource;
+  String? adresseComplement1;
+  String? ftthSn;
+  String? snRouteur;
+  String? adresseMac;
+  String? refRouteur;
+  String? description;
+  String? numIdentification;
+  String? fournisseur;
+  String? dateResolution;
+  String? etatId;
+  String? subStatutId;
   String? dateRdv;
   String? longitude;
   String? latitude;
-  String? photoProbleme;
-  String? photoSignal;
-  String? photoResolutionProbleme;
-  String? photoSup1;
-  String? photoSup2;
-  String? commentaire;
-  String? commentaireSup;
+  String? offreId;
   String? articleId;
-  String? adresseMac;
-  String? snRouteur;
-  String? snGpon;
-  String? macAnBox;
-  String? snAnBox;
-  String? snAnGpon;
-  String? dateResolution;
-  String? typeId;
-  String? etatId;
+  String? cableFibre;
+  String? boiteTypeId;
+  String? numFat;
+  String? numSplitter;
+  String? numSlimbox;
+  String? positionId;
+  String? speedUpload;
+  String? speedDownload;
+  String? signatureClient;
+  String? pRouteurAllume;
+  String? pTestSignalViaPm;
+  String? pPriseAvant;
+  String? pPriseApres;
+  String? pPassageCableAvant;
+  String? pPassageCableApres;
+  String? pCassetteRecto;
+  String? pCassetteVerso;
+  String? pSpeedTest;
+  String? pDosRouteurCin;
+  String? pNapFatBbOuvert;
+  String? pNapFatBbFerme;
+  String? pSlimboxOuvert;
+  String? pSlimboxFerme;
+  String? etatProvisioningId;
+  String? commentaire;
   String? archiveId;
   String? created;
   String? etatName;
+  String? type;
   String? plaqueName;
-  String? loginSip;
-  List<Commentaire>? commentaires;
-  List<String>? demandePanne;
-  List<String>? demandeSolution;
+  List<dynamic>? commentaires;
 
-  var etape = 1;
+  var etape; // Keeping it dynamic since no structure provided
 
   Demande({
     this.id,
-    this.ref,
-    this.caseId,
-    this.type,
     this.userId,
-    this.prestataireId,
-    this.client,
-    this.telephone,
-    this.accesReseau,
-    this.activitesService,
-    this.typeProbleme,
-    this.description,
-    this.numLigne,
-    this.nomPrenom,
-    this.numContact,
-    this.adresse,
-    this.ville,
-    this.nomPlanTarifaire,
-    this.dateIncident,
-    this.situationAbonnement,
-    this.routeur,
-    this.power,
-    this.pon,
-    this.los,
-    this.internet,
-    this.wifi,
-    this.cablageRedemarrageEquipement,
-    this.verificationCablagePto,
+    this.numero,
+    this.parent,
+    this.numeroLigne,
     this.plaqueId,
+    this.groupeAffectation,
+    this.idCommande,
+    this.consommateur,
+    this.telMobile,
+    this.createdSource,
+    this.adresseComplement1,
+    this.ftthSn,
+    this.snRouteur,
+    this.adresseMac,
+    this.refRouteur,
+    this.description,
+    this.numIdentification,
+    this.fournisseur,
+    this.dateResolution,
+    this.etatId,
+    this.subStatutId,
     this.dateRdv,
     this.longitude,
     this.latitude,
-    this.photoProbleme,
-    this.photoSignal,
-    this.photoResolutionProbleme,
-    this.photoSup1,
-    this.photoSup2,
-    this.commentaire,
-    this.commentaireSup,
+    this.offreId,
     this.articleId,
-    this.adresseMac,
-    this.snRouteur,
-    this.snGpon,
-    this.macAnBox,
-    this.snAnBox,
-    this.snAnGpon,
-    this.dateResolution,
-    this.typeId,
-    this.etatId,
+    this.cableFibre,
+    this.boiteTypeId,
+    this.numFat,
+    this.numSplitter,
+    this.numSlimbox,
+    this.positionId,
+    this.speedUpload,
+    this.speedDownload,
+    this.signatureClient,
+    this.pRouteurAllume,
+    this.pTestSignalViaPm,
+    this.pPriseAvant,
+    this.pPriseApres,
+    this.pPassageCableAvant,
+    this.pPassageCableApres,
+    this.pCassetteRecto,
+    this.pCassetteVerso,
+    this.pSpeedTest,
+    this.pDosRouteurCin,
+    this.pNapFatBbOuvert,
+    this.pNapFatBbFerme,
+    this.pSlimboxOuvert,
+    this.pSlimboxFerme,
+    this.etatProvisioningId,
+    this.commentaire,
     this.archiveId,
     this.created,
     this.etatName,
+    this.type,
     this.plaqueName,
-    this.loginSip,
     this.commentaires,
-    this.demandePanne,
-    this.demandeSolution,
   });
 
   factory Demande.fromJson(Map<String, dynamic> json) {
     return Demande(
       id: json['id'],
-      ref: json['ref'],
-      caseId: json['case_id'],
-      type: json['type'],
       userId: json['user_id'],
-      prestataireId: json['prestataire_id'],
-      client: json['client'],
-      telephone: json['telephone'],
-      accesReseau: json['acces_reseau'],
-      activitesService: json['activites_service'],
-      typeProbleme: json['type_probleme'],
-      description: json['description'],
-      numLigne: json['num_ligne'],
-      nomPrenom: json['nom_prenom'],
-      numContact: json['num_contact'],
-      adresse: json['adresse'],
-      ville: json['ville'],
-      nomPlanTarifaire: json['nom_plan_tarifaire'],
-      dateIncident: json['date_incident'],
-      situationAbonnement: json['situation_abonnement'],
-      routeur: json['routeur'],
-      power: json['power'],
-      pon: json['pon'],
-      los: json['los'],
-      internet: json['internet'],
-      wifi: json['wifi'],
-      cablageRedemarrageEquipement: json['cablage_redemarrage_equipement'],
-      verificationCablagePto: json['verification_cablage_pto'],
+      numero: json['numero'],
+      parent: json['parent'],
+      numeroLigne: json['numero_ligne'],
       plaqueId: json['plaque_id'],
+      groupeAffectation: json['groupe_affectation'],
+      idCommande: json['id_commande'],
+      consommateur: json['consommateur'],
+      telMobile: json['tel_mobile'],
+      createdSource: json['created_source'],
+      adresseComplement1: json['adresse_complement1'],
+      ftthSn: json['ftth_sn'],
+      snRouteur: json['sn_routeur'],
+      adresseMac: json['adresse_mac'],
+      refRouteur: json['ref_routeur'],
+      description: json['description'],
+      numIdentification: json['num_identification'],
+      fournisseur: json['fournisseur'],
+      dateResolution: json['date_resolution'],
+      etatId: json['etat_id'],
+      subStatutId: json['sub_statut_id'],
       dateRdv: json['date_rdv'],
       longitude: json['longitude'],
       latitude: json['latitude'],
-      photoProbleme: json['photo_probleme'],
-      photoSignal: json['photo_signal'],
-      photoResolutionProbleme: json['photo_resolution_probleme'],
-      photoSup1: json['photo_sup1'],
-      photoSup2: json['photo_sup2'],
-      commentaire: json['commentaire'],
-      commentaireSup: json['commentaire_sup'],
+      offreId: json['offre_id'],
       articleId: json['article_id'],
-      adresseMac: json['adresse_mac'],
-      snRouteur: json['sn_routeur'],
-      snGpon: json['sn_gpon'],
-      macAnBox: json['mac_an_box'],
-      snAnBox: json['sn_an_box'],
-      snAnGpon: json['sn_an_gpon'],
-      dateResolution: json['date_resolution'],
-      typeId: json['type_id'],
-      etatId: json['etat_id'],
+      cableFibre: json['cable_fibre'],
+      boiteTypeId: json['boite_type_id'],
+      numFat: json['num_fat'],
+      numSplitter: json['num_splitter'],
+      numSlimbox: json['num_slimbox'],
+      positionId: json['position_id'],
+      speedUpload: json['speed_upload'],
+      speedDownload: json['speed_download'],
+      signatureClient: json['signature_client'],
+      pRouteurAllume: json['p_routeur_allume'],
+      pTestSignalViaPm: json['p_test_signal_via_pm'],
+      pPriseAvant: json['p_prise_avant'],
+      pPriseApres: json['p_prise_apres'],
+      pPassageCableAvant: json['p_passage_cable_avant'],
+      pPassageCableApres: json['p_passage_cable_apres'],
+      pCassetteRecto: json['p_cassette_recto'],
+      pCassetteVerso: json['p_cassette_verso'],
+      pSpeedTest: json['p_speed_test'],
+      pDosRouteurCin: json['p_dos_routeur_cin'],
+      pNapFatBbOuvert: json['p_nap_fat_bb_ouvert'],
+      pNapFatBbFerme: json['p_nap_fat_bb_ferme'],
+      pSlimboxOuvert: json['p_slimbox_ouvert'],
+      pSlimboxFerme: json['p_slimbox_ferme'],
+      etatProvisioningId: json['etat_provisioning_id'],
+      commentaire: json['commentaire'],
       archiveId: json['archive_id'],
       created: json['created'],
       etatName: json['etat_name'],
+      type: json['type'],
       plaqueName: json['plaque_name'],
-      loginSip: json['login_sip'],
-      commentaires: json['commentaires'] != null ? (json['commentaires'] as List).map((i) => Commentaire.fromJson(i)).toList() : null,
-      demandePanne: json['DemandePanne'] != null ? List<String>.from(json['DemandePanne']) : null,
-      demandeSolution: json['DemandeSolution'] != null ? List<String>.from(json['DemandeSolution']) : null,
+      commentaires: json['commentaires'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'ref': ref,
-      'case_id': caseId,
-      'type': type,
       'user_id': userId,
-      'prestataire_id': prestataireId,
-      'client': client,
-      'telephone': telephone,
-      'acces_reseau': accesReseau,
-      'activites_service': activitesService,
-      'type_probleme': typeProbleme,
-      'description': description,
-      'num_ligne': numLigne,
-      'nom_prenom': nomPrenom,
-      'num_contact': numContact,
-      'adresse': adresse,
-      'ville': ville,
-      'nom_plan_tarifaire': nomPlanTarifaire,
-      'date_incident': dateIncident,
-      'situation_abonnement': situationAbonnement,
-      'routeur': routeur,
-      'power': power,
-      'pon': pon,
-      'los': los,
-      'internet': internet,
-      'wifi': wifi,
-      'cablage_redemarrage_equipement': cablageRedemarrageEquipement,
-      'verification_cablage_pto': verificationCablagePto,
+      'numero': numero,
+      'parent': parent,
+      'numero_ligne': numeroLigne,
       'plaque_id': plaqueId,
+      'groupe_affectation': groupeAffectation,
+      'id_commande': idCommande,
+      'consommateur': consommateur,
+      'tel_mobile': telMobile,
+      'created_source': createdSource,
+      'adresse_complement1': adresseComplement1,
+      'ftth_sn': ftthSn,
+      'sn_routeur': snRouteur,
+      'adresse_mac': adresseMac,
+      'ref_routeur': refRouteur,
+      'description': description,
+      'num_identification': numIdentification,
+      'fournisseur': fournisseur,
+      'date_resolution': dateResolution,
+      'etat_id': etatId,
+      'sub_statut_id': subStatutId,
       'date_rdv': dateRdv,
       'longitude': longitude,
       'latitude': latitude,
-      'photo_probleme': photoProbleme,
-      'photo_signal': photoSignal,
-      'photo_resolution_probleme': photoResolutionProbleme,
-      'photo_sup1': photoSup1,
-      'photo_sup2': photoSup2,
-      'commentaire': commentaire,
-      'commentaire_sup': commentaireSup,
+      'offre_id': offreId,
       'article_id': articleId,
-      'adresse_mac': adresseMac,
-      'sn_routeur': snRouteur,
-      'sn_gpon': snGpon,
-      'mac_an_box': macAnBox,
-      'sn_an_box': snAnBox,
-      'sn_an_gpon': snAnGpon,
-      'date_resolution': dateResolution,
-      'type_id': typeId,
-      'etat_id': etatId,
+      'cable_fibre': cableFibre,
+      'boite_type_id': boiteTypeId,
+      'num_fat': numFat,
+      'num_splitter': numSplitter,
+      'num_slimbox': numSlimbox,
+      'position_id': positionId,
+      'speed_upload': speedUpload,
+      'speed_download': speedDownload,
+      'signature_client': signatureClient,
+      'p_routeur_allume': pRouteurAllume,
+      'p_test_signal_via_pm': pTestSignalViaPm,
+      'p_prise_avant': pPriseAvant,
+      'p_prise_apres': pPriseApres,
+      'p_passage_cable_avant': pPassageCableAvant,
+      'p_passage_cable_apres': pPassageCableApres,
+      'p_cassette_recto': pCassetteRecto,
+      'p_cassette_verso': pCassetteVerso,
+      'p_speed_test': pSpeedTest,
+      'p_dos_routeur_cin': pDosRouteurCin,
+      'p_nap_fat_bb_ouvert': pNapFatBbOuvert,
+      'p_nap_fat_bb_ferme': pNapFatBbFerme,
+      'p_slimbox_ouvert': pSlimboxOuvert,
+      'p_slimbox_ferme': pSlimboxFerme,
+      'etat_provisioning_id': etatProvisioningId,
+      'commentaire': commentaire,
       'archive_id': archiveId,
       'created': created,
       'etat_name': etatName,
+      'type': type,
       'plaque_name': plaqueName,
-      'login_sip': loginSip,
-      'commentaires': commentaires?.map((commentaire) => commentaire.toJson()).toList(),
-      'DemandePanne': demandePanne,
-      'DemandeSolution': demandeSolution,
+      'commentaires': commentaires,
     };
   }
 }

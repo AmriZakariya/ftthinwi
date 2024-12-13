@@ -933,8 +933,8 @@ class _InterventionFormState extends State<InterventionForm>
                                 onPress: () async {
                                   print("share wtsp");
 
-                                  String msgShare =
-                                  getMsgShare(currentStepNotifier);
+                                  String msgShare = Tools.getMsgShare(currentStepNotifier);
+
 
                                   print("msgShare ==> ${msgShare}");
 
@@ -1693,20 +1693,6 @@ class _InterventionFormState extends State<InterventionForm>
         ],
       ),
     );
-  }
-
-   String getMsgShare(int currentStepNotifier) {
-    print("msgShare currentStepNotifier ==> $currentStepNotifier");
-
-    final demande = Tools.selectedDemande;
-
-    return '''REF: ${demande?.ref ?? ""}
-        CASE ID: ${demande?.caseId ?? ""}
-        VILLE: ${demande?.ville ?? ""}
-        CLIENT: ${demande?.client ?? ""}
-        PANNES: ${demande?.demandePanne ?? ""}
-        LOGIN_SIP: ${demande?.accesReseau ?? ""}
-        SOLUTIONS: ${demande?.demandeSolution ?? ""}''';
   }
 
   Widget buildFieldBlocWidget(fieldBloc, index) {

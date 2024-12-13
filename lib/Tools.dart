@@ -22,7 +22,7 @@ import 'models/response_get_liste_pannes.dart';
 
 /// Utility class for network calls, file handling, and data caching.
 class Tools {
-  static String baseUrl = "https://sav.crmtelcabo.com";
+  static String baseUrl = "https://ftthinwi.castlit.com";
   static bool localWatermark = false;
 
   // Selected demande and cached data
@@ -34,7 +34,7 @@ class Tools {
   static Map? searchFilter = {};
   static String currentDemandesEtatFilter = "";
   static String deviceToken = "";
-    static String fcmToken = "";
+  static String fcmToken = "";
   static String userId = "";
   static String userName = "";
   static String userEmail = "";
@@ -47,8 +47,8 @@ class Tools {
 
   // Language and colors
   static String languageCode = "ar";
-  static final Color colorPrimary = const Color(0xff3f4d67);
-  static final Color colorSecondary = const Color(0xfff99e25);
+  static final Color colorPrimary = const Color(0xff913776);
+  static final Color colorSecondary = const Color(0xff5d234c);
   static final Color colorBackground = const Color(0xfff3f1ef);
 
   // Local files
@@ -631,5 +631,17 @@ class Tools {
     // log(token);
     print("getAccessTokenFromServiceAccount => Token: $token");
     return token;
+  }
+
+  static String getMsgShare(int currentStepNotifier) {
+    final demande = Tools.selectedDemande;
+
+    return '''
+      REF: ${demande?.numero ?? ""}
+      CASE ID: ${demande?.parent ?? ""}
+      CLIENT: ${demande?.consommateur ?? ""}
+      ADRESSE: ${demande?.adresseComplement1 ?? ""}
+      ETAT: ${demande?.etatName ?? ""}
+      ''';
   }
 }
