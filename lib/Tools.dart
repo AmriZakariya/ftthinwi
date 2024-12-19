@@ -18,6 +18,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telcabo/custome/ConnectivityCheckBlocBuilder.dart';
 import 'package:telcabo/models/response_get_demandes.dart';
+import 'package:telcabo/models/response_get_list_field_options.dart';
+import 'package:telcabo/models/response_get_liste_etats.dart';
 import 'models/response_get_liste_pannes.dart';
 
 /// Utility class for network calls, file handling, and data caching.
@@ -53,6 +55,8 @@ class Tools {
 
   // Local files
   static File filePannesList = File("");
+  static File fileEtatsList = File("");
+  static File fileFieldOptions = File("");
   static File fileDemandesList = File("");
   static File fileTraitementList = File("");
 
@@ -95,10 +99,14 @@ class Tools {
     _log("initFiles started");
     getApplicationDocumentsDirectory().then((Directory directory) {
       filePannesList = File("${directory.path}/filePannesList.json");
+      fileEtatsList = File("${directory.path}/fileEtatsList.json");
+      fileFieldOptions = File("${directory.path}/fileFieldOptions.json");
       fileDemandesList = File("${directory.path}/fileDemandesList.json");
       fileTraitementList = File("${directory.path}/fileTraitementList.json");
 
       if (!filePannesList.existsSync()) filePannesList.createSync();
+      if (!fileEtatsList.existsSync()) fileEtatsList.createSync();
+      if (!fileFieldOptions.existsSync()) fileFieldOptions.createSync();
       if (!fileDemandesList.existsSync()) fileDemandesList.createSync();
       if (!fileTraitementList.existsSync()) fileTraitementList.createSync();
     }).catchError((e) {
@@ -155,6 +163,43 @@ class Tools {
       apiName: "callWSGetPannes",
     );
   }
+
+  static Future<ResponseGetListEtats> callWSGetEtats() async {
+    Dio dio = Dio()..interceptors.add(dioLoggerInterceptor);
+    return _callApiWithFallback<ResponseGetListEtats>(
+      apiCall: () async {
+        _log("callWSGetEtats: calling API");
+        final response = await dio.get("$baseUrl/etats/liste_etats");
+        final decoded = _decodeResponseData(response, "callWSGetEtats");
+        if (decoded != null) {
+          writeToFileEtatsList(decoded);
+          return ResponseGetListEtats.fromJson(decoded);
+        }
+        throw Exception("Invalid response from server");
+      },
+      fallback: readfileEtatsList,
+      apiName: "callWSGetEtats",
+    );
+  }
+  static Future<ResponseGetFieldOptions> callWSGetFieldOptions() async {
+    Dio dio = Dio()..interceptors.add(dioLoggerInterceptor);
+    return _callApiWithFallback<ResponseGetFieldOptions>(
+      apiCall: () async {
+        _log("callWSGetFieldOptions: calling API");
+        final response = await dio.get("$baseUrl/traitements/getFieldsOptions");
+        final decoded = _decodeResponseData(response, "callWSGetFieldOptions");
+        if (decoded != null && decoded is List) {
+          writeToFileFieldOptions(decoded);
+          return ResponseGetFieldOptions.fromJson(decoded);
+        }
+        throw Exception("Invalid response from server");
+      },
+      fallback: readfileFieldOptions,
+      apiName: "callWSGetFieldOptions",
+    );
+  }
+
+
 
   /// Fetches the demandes list from API or returns empty on failure.
   static Future<ResponseGetDemandesList> getDemandes() async {
@@ -217,6 +262,26 @@ class Tools {
       _logError("writeToFilePannesList exception", e, st);
     }
   }
+
+  /// Write etats list to local file
+  static void writeToFileEtatsList(Map<String, dynamic> jsonMapContent) {
+    _log("writeToFileEtatsList");
+    try {
+      fileEtatsList.writeAsStringSync(json.encode(jsonMapContent));
+    } catch (e, st) {
+      _logError("writeToFileEtatsList exception", e, st);
+    }
+  }
+
+  static void writeToFileFieldOptions(List<dynamic> jsonContent) {
+    _log("writeToFileFieldOptions");
+    try {
+      fileFieldOptions.writeAsStringSync(json.encode(jsonContent));
+    } catch (e, st) {
+      _logError("writeToFileFieldOptions exception", e, st);
+    }
+  }
+
 
   /// Write demandes list to local file
   static void writeToFileDemandeList(Map jsonMapContent) {
@@ -390,6 +455,24 @@ class Tools {
     );
   }
 
+  /// Reads etats list from local file.
+  static ResponseGetListEtats readfileEtatsList() {
+    return _readFile<ResponseGetListEtats>(
+      fileEtatsList,
+          (data) => ResponseGetListEtats.fromJson(data),
+      ResponseGetListEtats(etats: []), // Default value if file is empty or fails
+    );
+  }
+
+  static ResponseGetFieldOptions readfileFieldOptions() {
+    return _readFile<ResponseGetFieldOptions>(
+      fileFieldOptions,
+          (data) => ResponseGetFieldOptions.fromJson(data as List<dynamic>),
+      ResponseGetFieldOptions(fieldOptions: []),
+    );
+  }
+
+
   /// Reads demandes list from local file.
   static ResponseGetDemandesList readfileDemandesList() {
     return _readFile<ResponseGetDemandesList>(
@@ -406,6 +489,25 @@ class Tools {
       return callWSGetPannes();
     } else {
       return readfilePannesList();
+    }
+  }
+
+  /// Gets etats list from either API or local cache.
+  static Future<ResponseGetListEtats> getEtatsListFromLocalAndInternet() async {
+    _log("getEtatsListFromLocalAndInternet started");
+    if (await tryConnection()) {
+      return callWSGetEtats();
+    } else {
+      return readfileEtatsList();
+    }
+  }
+
+  static Future<ResponseGetFieldOptions> getFieldOptionsFromLocalAndInternet() async {
+    _log("getFieldOptionsFromLocalAndInternet started");
+    if (await tryConnection()) {
+      return callWSGetFieldOptions();
+    } else {
+      return readfileFieldOptions();
     }
   }
 

@@ -187,7 +187,6 @@ class AnnulationFormBloc extends FormBloc<String, String> {
       Map<String, dynamic> formDateValues = await state.toJson();
 
       formDateValues.addAll({
-        // "etape": Tools.currentStep + 1,
         "demande_id": Tools.selectedDemande?.id ?? "",
         "user_id": Tools.userId,
         "Traitement[date]": dateNowFormatted,
@@ -635,89 +634,46 @@ class _AnnulationFormState extends State<AnnulationForm>
                           ) {
                             return Column(
                               children: <Widget>[
+                                const SizedBox(height: 20), // Add consistent spacing at the top
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.center, // Center the button horizontally
                                   children: <Widget>[
-                                    SizedBox(
-                                      height: 50,
-                                    ),
                                     Expanded(
                                       child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        // padding: const  EdgeInsets.only(top: 8,left: 8,right: 8, bottom: 20),
-
+                                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Consistent padding
                                         child: ElevatedButton(
                                           onPressed: () async {
-                                            print("cliick");
-                                            // formBloc.readJson();
-                                            // formBloc.fileTraitementList.writeAsStringSync("");
-
-                                            // bool isLocationServiceOK = await ToolsExtra.checkLocationService();
-                                            // if(isLocationServiceOK == false){
-                                            //   return;
-                                            // }
-
+                                            print("Button clicked");
                                             formBloc.submit();
                                           },
-                                          child: const Text(
-                                            'Enregistrer',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontSize: 18.0,
-                                              wordSpacing: 12,
-                                            ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              const Icon(Icons.save, size: 20), // Add an icon for visual appeal
+                                              const SizedBox(width: 8), // Space between icon and text
+                                              Text(
+                                                'Enregistrer',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: 18.0,
+                                                  fontWeight: FontWeight.w600, // Bold text for better readability
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                           style: ElevatedButton.styleFrom(
-                                            // shape: CircleBorder(),
-                                            minimumSize: Size(280, 50),
-
-                                            // primary: Tools.colorPrimary,
+                                            minimumSize: const Size(200, 50), // Button size
+                                            padding: const EdgeInsets.symmetric(vertical: 14.0), // Internal padding
                                             shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  new BorderRadius.circular(
-                                                      30.0),
+                                              borderRadius: BorderRadius.circular(25.0), // Rounded corners
                                             ),
+                                            elevation: 5, // Shadow for depth
+                                            backgroundColor: Tools.colorPrimary, // Primary color
+                                            foregroundColor: Colors.white, // Text/icon color
                                           ),
                                         ),
                                       ),
                                     ),
-                                    if (!formBloc.state.isFirstStep &&
-                                        !formBloc.state.isLastStep)
-                                      // Expanded(
-                                      //   child: ElevatedButton(
-                                      //     onPressed: () {
-                                      //       print("cliick");
-                                      //       // formBloc.readJson();
-                                      //       // formBloc.fileTraitementList.writeAsStringSync("");
-                                      //
-                                      //       // context.read<formBloc>().clear();
-                                      //
-                                      //
-                                      //
-                                      //       onStepCancel!() ;
-                                      //     },
-                                      //     child: const Text('Annuler',
-                                      //       textAlign: TextAlign.center,
-                                      //       style: TextStyle(
-                                      //         fontSize: 18.0,
-                                      //         wordSpacing: 12,
-                                      //       ),
-                                      //     ),
-                                      //     style: ElevatedButton.styleFrom(
-                                      //       primary: Colors.grey,
-                                      //       // shape: CircleBorder(),
-                                      //       minimumSize: Size(200, 50),
-                                      //       // primary: Tools.colorPrimary,
-                                      //       shape: RoundedRectangleBorder(
-                                      //         borderRadius: new BorderRadius.circular(30.0),
-                                      //       ),
-                                      //
-                                      //     ),
-                                      //   ),
-                                      // ),
-                                      SizedBox(
-                                        height: 50,
-                                      ),
-//                              Text(Translations.of(context).confidential)
                                   ],
                                 ),
                               ],
@@ -879,7 +835,7 @@ class EndDrawerWidget extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(Tools.selectedDemande
-                                  ?.commentaires?[index].commentaire ??
+                                  ?.commentaires?.elementAt(index).commentaire ??
                               ""),
                         ),
                       ),

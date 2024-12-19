@@ -28,9 +28,8 @@ class Demand {
 
   factory Demand.fromJson(Map<String, dynamic> json) {
     return Demand(
-      demandes: (json['demandes'] as List)
-          .map((i) => Demande.fromJson(i))
-          .toList(),
+      demandes:
+          (json['demandes'] as List).map((i) => Demande.fromJson(i)).toList(),
     );
   }
 }
@@ -93,7 +92,7 @@ class Demande {
   String? etatName;
   String? type;
   String? plaqueName;
-  List<dynamic>? commentaires;
+  List<Commentaire>? commentaires;
 
   var etape; // Keeping it dynamic since no structure provided
 
@@ -217,7 +216,11 @@ class Demande {
       etatName: json['etat_name'],
       type: json['type'],
       plaqueName: json['plaque_name'],
-      commentaires: json['commentaires'],
+      commentaires: json['commentaires'] != null
+          ? (json['commentaires'] as List)
+              .map((e) => Commentaire.fromJson(e))
+              .toList()
+          : null,
     );
   }
 
@@ -280,7 +283,8 @@ class Demande {
       'etat_name': etatName,
       'type': type,
       'plaque_name': plaqueName,
-      'commentaires': commentaires,
+      'commentaires': commentaires?.map((e) => e.toJson()).toList(),
+
     };
   }
 }

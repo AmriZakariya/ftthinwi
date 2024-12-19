@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cool_alert/cool_alert.dart';
+
 // import 'package:dartx/dartx.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_logger/dio_logger.dart';
@@ -22,137 +23,54 @@ import 'package:telcabo/ToolsExtra.dart';
 import 'package:telcabo/custome/ConnectivityCheckBlocBuilder.dart';
 import 'package:telcabo/custome/ImageFieldBlocbuilder.dart';
 import 'package:telcabo/custome/QrScannerTextFieldBlocBuilder.dart';
+import 'package:telcabo/models/response_get_list_field_options.dart';
+import 'package:telcabo/models/response_get_liste_etats.dart';
 import 'package:telcabo/models/response_get_liste_pannes.dart';
 import 'package:telcabo/ui/InterventionHeaderInfoWidget.dart';
 import 'package:telcabo/ui/LoadingDialog.dart';
 import 'package:timelines/timelines.dart';
 
 final GlobalKey<ScaffoldState> formStepperScaffoldKey =
-new GlobalKey<ScaffoldState>();
+    new GlobalKey<ScaffoldState>();
 
 ValueNotifier<int> currentStepValueNotifier = ValueNotifier(Tools.currentStep);
 
 class InterventionFormBLoc extends FormBloc<String, String> {
   // late final ResponseGetListEtat responseListEtat;
   // late final ResponseGetListType responseGetListType;
-  late final ResponseGetListPannes responseGetListPannes;
+  late final ResponseGetListEtats responseGetListEtats;
+  late final ResponseGetFieldOptions responseGetFieldOptions;
 
   Directory dir = Directory("");
   File fileTraitementList = File("");
 
-  final Map<int, List<FieldBloc>> dynamicFields = {};
-
-  void buildDynamicsFields() {
-    for (var i = 1; i <= 10; i++) {
-      final panneDropDown_dynamic = SelectFieldBloc<Panne, dynamic>(
-        name: "SolPanne[${i}][panne_id]",
-        validators: [
-          FieldBlocValidators.required,
-        ],
-        toJson: (value) => value?.id,
-      );
-
-      final solutionEtatDropDown_dynamic = SelectFieldBloc<Solution, dynamic>(
-        name: "SolPanne[${i}][solution_id]",
-        validators: [
-          FieldBlocValidators.required,
-        ],
-        toJson: (value) => value?.id,
-      );
-
-      final qteTextField_dynamic = TextFieldBloc(
-        name: "SolPanne[${i}][qte]",
-        validators: [FieldBlocValidators.required, _qteMinMaxValue],
-      );
-
-      panneDropDown_dynamic.onValueChanges(
-        onData: (previous, current) async* {
-          var selectedPanne = current.value;
-          if (selectedPanne?.id == null) {
-            return;
-          }
-
-          if (selectedPanne == panneDropDown.value) {
-            panneDropDown_dynamic.addError("Panne déjà sélectionnée");
-          }
-
-          removeFieldBlocs(fieldBlocs: [
-            solutionEtatDropDown_dynamic,
-            qteTextField_dynamic,
-          ]);
-
-          // if (solutionEtatDropDown.value?.hasExtra == false) {
-          //   removeFieldBlocs(fieldBlocs: [
-          //     adresseMacTextField,
-          //     snRouteurTextField,
-          //     snGponTextField,
-          //     macAncienneBoxTextField,
-          //     snAncienneBoxTextField,
-          //     snAncienneGponTextField,
-          //     articlesDropDown,
-          //   ]);
-          //
-          // }
-
-          solutionEtatDropDown_dynamic.updateItems(
-              selectedPanne?.solutions ?? []);
-          addFieldBloc(fieldBloc: solutionEtatDropDown_dynamic);
-        },
-      );
-
-      solutionEtatDropDown_dynamic.onValueChanges(
-        onData: (previous, current) async* {
-          var selectedSolution = current.value;
-          if (selectedSolution?.id == null) {
-            return;
-          }
-
-          removeFieldBlocs(fieldBlocs: [
-            qteTextField_dynamic,
-          ]);
-
-          if (selectedSolution?.hasQuantity == true) {
-            addFieldBloc(fieldBloc: qteTextField_dynamic);
-          }
-
-          // if (selectedSolution?.hasExtra == true) {
-          //   articlesDropDown.updateItems(selectedSolution?.articles ?? []);
-          //   addFieldBloc(fieldBloc: articlesDropDown);
-          // }
-        },
-      );
-
-      final List<FieldBloc> fieldBlocsList = [
-        panneDropDown_dynamic,
-        solutionEtatDropDown_dynamic,
-        qteTextField_dynamic,
-      ];
-
-      dynamicFields[i] = fieldBlocsList;
-    }
-
-    print("[dynamic_debug] dynamicFields ==> ${dynamicFields.length}");
-  }
-
   /* Form Fields */
 
-  final panneDropDown = SelectFieldBloc<Panne, dynamic>(
-    name: "SolPanne[0][panne_id]",
+  final etatsDropDown = SelectFieldBloc<Etat, dynamic>(
+    name: "Traitement[etat_id]",
     validators: [
       FieldBlocValidators.required,
     ],
     toJson: (value) => value?.id,
   );
 
-  final solutionEtatDropDown = SelectFieldBloc<Solution, dynamic>(
-    name: "SolPanne[0][solution_id]",
+  final sousEtatsDropDown = SelectFieldBloc<SousEtat, dynamic>(
+    name: "Traitement[sub_statut_id]",
     validators: [
       FieldBlocValidators.required,
     ],
     toJson: (value) => value?.id,
   );
 
-  final articlesDropDown = SelectFieldBloc<Article, dynamic>(
+  final offreDropDown = SelectFieldBloc<FieldOption, dynamic>(
+    name: "Traitement[offre_id]",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) => value?.id,
+  );
+
+  final articleDropDown = SelectFieldBloc<FieldOption, dynamic>(
     name: "Traitement[article_id]",
     validators: [
       FieldBlocValidators.required,
@@ -160,10 +78,71 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     toJson: (value) => value?.id,
   );
 
-  final qteTextField = TextFieldBloc(
-    name: 'SolPanne[0][qte]',
-    validators: [FieldBlocValidators.required, _qteMinMaxValue],
-    initialValue: "1",
+  final boiteTypeDropDown = SelectFieldBloc<FieldOption, dynamic>(
+    name: "Traitement[boite_type_id]",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) => value?.id,
+  );
+
+  final positionDropDown = SelectFieldBloc<FieldOption, dynamic>(
+    name: "Traitement[position_id]",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) => value?.id,
+  );
+
+  final etatProvisioningDropDown = SelectFieldBloc<FieldOption, dynamic>(
+    name: "Traitement[etat_provisioning_id]",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) => value?.id,
+  );
+
+  final cableFibreTextField = TextFieldBloc(
+    name: 'Traitement[cable_fibre]',
+    validators: [
+      FieldBlocValidators.required,
+    ],
+  );
+
+  final numFatTextField = TextFieldBloc(
+    name: 'Traitement[num_fat]',
+    validators: [
+      FieldBlocValidators.required,
+    ],
+  );
+
+  final numSplitterTextField = TextFieldBloc(
+    name: 'Traitement[num_splitter]',
+    validators: [
+      FieldBlocValidators.required,
+      minMaxValidator(min: 1, max: 5), // Using minMaxValidator with range 1-5
+    ],
+  );
+
+  final numSlimboxTextField = TextFieldBloc(
+    name: 'Traitement[num_slimbox]',
+    validators: [
+      FieldBlocValidators.required,
+    ],
+  );
+
+  final speedUploadTextField = TextFieldBloc(
+    name: 'Traitement[speed_upload]',
+    validators: [
+      FieldBlocValidators.required,
+    ],
+  );
+
+  final speedDownloadTextField = TextFieldBloc(
+    name: 'Traitement[speed_download]',
+    validators: [
+      FieldBlocValidators.required,
+    ],
   );
 
   final commentaireTextField = TextFieldBloc(
@@ -173,17 +152,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     ],
   );
 
-  final commentaireSupTextField = TextFieldBloc(
-    name: 'Traitement[commentaire_sup]',
-    validators: [
-      FieldBlocValidators.required,
-    ],
-  );
-
-  final InputFieldBloc<XFile?, Object> photoProblemeInputFieldBloc =
-  InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> routeurAllumeInputFieldBloc =
+      InputFieldBloc(
     initialValue: null,
-    name: "photo_probleme",
+    name: "p_routeur_allume",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -194,10 +166,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> photoSignalInputFieldBloc =
-  InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> testSignalViaPmInputFieldBloc =
+      InputFieldBloc(
     initialValue: null,
-    name: "photo_signal",
+    name: "p_test_signal_via_pm",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -208,13 +180,13 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> photoResolutionProblemeInputFieldBloc =
-  InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> priseAvantInputFieldBloc =
+      InputFieldBloc(
     initialValue: null,
+    name: "p_prise_avant",
     validators: [
       FieldBlocValidators.required,
     ],
-    name: "photo_resolution_probleme",
     toJson: (value) {
       MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
           filename: value?.name ?? "");
@@ -222,9 +194,13 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> photoSup1InputFieldBloc = InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> priseApresInputFieldBloc =
+      InputFieldBloc(
     initialValue: null,
-    name: "photo_sup1",
+    name: "p_prise_apres",
+    validators: [
+      FieldBlocValidators.required,
+    ],
     toJson: (value) {
       MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
           filename: value?.name ?? "");
@@ -232,12 +208,13 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> photoSup2InputFieldBloc = InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> passageCableAvantInputFieldBloc =
+      InputFieldBloc(
     initialValue: null,
-    name: "photo_sup2",
-    // validators: [
-    //   FieldBlocValidators.required,
-    // ],
+    name: "p_passage_cable_avant",
+    validators: [
+      FieldBlocValidators.required,
+    ],
     toJson: (value) {
       MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
           filename: value?.name ?? "");
@@ -245,19 +222,130 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  static String? _qteMinMaxValue(String? debit) {
-    int intValue;
+  final InputFieldBloc<XFile?, Object> passageCableApresInputFieldBloc =
+      InputFieldBloc(
+    initialValue: null,
+    name: "p_passage_cable_apres",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) {
+      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
+          filename: value?.name ?? "");
+      return file;
+    },
+  );
 
-    try {
-      intValue = int.parse(debit ?? "");
-      if (intValue < 1) {
-        return "min 1";
-      }
-    } catch (e) {
-      return "intValue";
-    }
-    return null;
-  }
+  final InputFieldBloc<XFile?, Object> cassetteRectoInputFieldBloc =
+      InputFieldBloc(
+    initialValue: null,
+    name: "p_cassette_recto",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) {
+      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
+          filename: value?.name ?? "");
+      return file;
+    },
+  );
+
+  final InputFieldBloc<XFile?, Object> cassetteVersoInputFieldBloc =
+      InputFieldBloc(
+    initialValue: null,
+    name: "p_cassette_verso",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) {
+      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
+          filename: value?.name ?? "");
+      return file;
+    },
+  );
+
+  final InputFieldBloc<XFile?, Object> speedTestInputFieldBloc = InputFieldBloc(
+    initialValue: null,
+    name: "p_speed_test",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) {
+      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
+          filename: value?.name ?? "");
+      return file;
+    },
+  );
+
+  final InputFieldBloc<XFile?, Object> dosRouteurCinInputFieldBloc =
+      InputFieldBloc(
+    initialValue: null,
+    name: "p_dos_routeur_cin",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) {
+      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
+          filename: value?.name ?? "");
+      return file;
+    },
+  );
+
+  final InputFieldBloc<XFile?, Object> napFatBbOuvertInputFieldBloc =
+      InputFieldBloc(
+    initialValue: null,
+    name: "p_nap_fat_bb_ouvert",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) {
+      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
+          filename: value?.name ?? "");
+      return file;
+    },
+  );
+
+  final InputFieldBloc<XFile?, Object> napFatBbFermeInputFieldBloc =
+      InputFieldBloc(
+    initialValue: null,
+    name: "p_nap_fat_bb_ferme",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) {
+      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
+          filename: value?.name ?? "");
+      return file;
+    },
+  );
+
+  final InputFieldBloc<XFile?, Object> slimboxOuvertInputFieldBloc =
+      InputFieldBloc(
+    initialValue: null,
+    name: "p_slimbox_ouvert",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) {
+      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
+          filename: value?.name ?? "");
+      return file;
+    },
+  );
+
+  final InputFieldBloc<XFile?, Object> slimboxFermeInputFieldBloc =
+      InputFieldBloc(
+    initialValue: null,
+    name: "p_slimbox_ferme",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) {
+      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
+          filename: value?.name ?? "");
+      return file;
+    },
+  );
 
   final latitudeTextField = TextFieldBloc(
     name: 'Traitement[latitude]',
@@ -286,31 +374,24 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     ],
   );
 
-  final snGponTextField = TextFieldBloc(
-    name: 'Traitement[sn_gpon]',
-    validators: [
-      FieldBlocValidators.required,
-    ],
-  );
-  final macAncienneBoxTextField = TextFieldBloc(
-    name: 'Traitement[mac_an_box]',
-    validators: [
-      // FieldBlocValidators.required,
-    ],
-  );
-
-  final snAncienneBoxTextField = TextFieldBloc(
-    name: 'Traitement[sn_an_box]',
+  final refRouteurTextField = TextFieldBloc(
+    name: 'Traitement[ref_routeur]',
     validators: [
       FieldBlocValidators.required,
     ],
   );
 
-  final snAncienneGponTextField = TextFieldBloc(
-    name: 'Traitement[sn_an_gpon]',
+  final dateRdvInputFieldBLoc = InputFieldBloc<DateTime?, Object>(
+    initialValue: null,
+    name: "date_rdv",
     validators: [
       FieldBlocValidators.required,
     ],
+    toJson: (value) {
+      final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:s');
+      final String formatted = formatter.format(value ?? DateTime.now());
+      return formatted;
+    },
   );
 
   InterventionFormBLoc() : super(isLoading: true) {
@@ -322,116 +403,114 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     addFieldBlocs(
       step: 0,
       fieldBlocs: [
-        panneDropDown,
+        etatsDropDown,
+        offreDropDown,
+        articleDropDown,
+        boiteTypeDropDown,
+        positionDropDown,
         latitudeTextField,
+        cableFibreTextField,
+        numFatTextField,
+        numSplitterTextField,
+        speedUploadTextField,
+        speedDownloadTextField,
         longintudeTextField,
-        photoProblemeInputFieldBloc,
-        photoSignalInputFieldBloc,
-        photoResolutionProblemeInputFieldBloc,
-        photoSup1InputFieldBloc,
-        photoSup2InputFieldBloc,
         commentaireTextField,
+        adresseMacTextField,
+        snRouteurTextField,
+        refRouteurTextField,
+        dateRdvInputFieldBLoc,
+        routeurAllumeInputFieldBloc,
+        testSignalViaPmInputFieldBloc,
+        priseAvantInputFieldBloc,
+        priseApresInputFieldBloc,
+        passageCableAvantInputFieldBloc,
+        passageCableApresInputFieldBloc,
+        cassetteRectoInputFieldBloc,
+        cassetteVersoInputFieldBloc,
+        speedTestInputFieldBloc,
+        dosRouteurCinInputFieldBloc,
+        napFatBbOuvertInputFieldBloc,
+        napFatBbFermeInputFieldBloc,
+        slimboxOuvertInputFieldBloc,
+        slimboxFermeInputFieldBloc
       ],
     );
 
-    panneDropDown.onValueChanges(
+    etatsDropDown.onValueChanges(
       onData: (previous, current) async* {
-        var selectedPanne = current.value;
-        if (selectedPanne?.id == null) {
+        var selectedEtat = current.value;
+        print("selectedEtat id ==> ${selectedEtat?.id}");
+        if (selectedEtat?.id == null) {
           return;
         }
 
-        removeFieldBlocs(fieldBlocs: [
-          articlesDropDown,
-          solutionEtatDropDown,
-          qteTextField,
-          adresseMacTextField,
-          snRouteurTextField,
-          snGponTextField,
-          macAncienneBoxTextField,
-          snAncienneBoxTextField,
-          snAncienneGponTextField,
-        ]);
+        removeFieldBlocs(
+            fieldBlocs: [sousEtatsDropDown, etatProvisioningDropDown]);
 
-        solutionEtatDropDown.updateItems(selectedPanne?.solutions ?? []);
-        addFieldBloc(fieldBloc: solutionEtatDropDown);
-      },
-    );
+        if (selectedEtat?.id == "8") {
+          addFieldBloc(fieldBloc: etatProvisioningDropDown);
+        }
 
-    solutionEtatDropDown.onValueChanges(
-      onData: (previous, current) async* {
-        var selectedSolution = current.value;
-        if (selectedSolution?.id == null) {
+        // chek if null or empty sub list
+        if (selectedEtat?.sousEtats == null ||
+            selectedEtat?.sousEtats?.isEmpty == true) {
           return;
         }
 
-        removeFieldBlocs(fieldBlocs: [
-          articlesDropDown,
-          qteTextField,
-          adresseMacTextField,
-          snRouteurTextField,
-          snGponTextField,
-          macAncienneBoxTextField,
-          snAncienneBoxTextField,
-          snAncienneGponTextField,
-        ]);
-
-        if (selectedSolution?.hasQuantity == true) {
-          addFieldBloc(fieldBloc: qteTextField);
-        }
-
-        if (selectedSolution?.hasExtra == true) {
-          articlesDropDown.updateItems(selectedSolution?.articles ?? []);
-          addFieldBlocs(fieldBlocs: [
-            articlesDropDown,
-            adresseMacTextField,
-            snRouteurTextField,
-            snGponTextField,
-            macAncienneBoxTextField,
-            snAncienneBoxTextField,
-            snAncienneGponTextField,
-          ]);
-        }
+        sousEtatsDropDown.updateItems(selectedEtat?.sousEtats ?? []);
+        addFieldBloc(fieldBloc: sousEtatsDropDown);
       },
     );
-
-    buildDynamicsFields();
   }
 
   bool writeToFileTraitementList(Map jsonMapContent) {
     print("Writing to writeToFileTraitementList!");
 
-    // fileTraitementList.writeAsStringSync("");
-    // return true;
     try {
       for (var mapKey in jsonMapContent.keys) {
-        // print('${k}: ${v}');
-        // print(k);
-
-        if (mapKey == "p_pbi_avant") {
+        if (mapKey == "p_routeur_allume") {
           jsonMapContent[mapKey] =
-          "${photoProblemeInputFieldBloc.value
-              ?.path};;${photoProblemeInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_pbi_apres") {
-          // jsonMapContent[mapKey] = pPbiApresTextField.value?.path;
+              "${routeurAllumeInputFieldBloc.value?.path};;${routeurAllumeInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_test_signal_via_pm") {
           jsonMapContent[mapKey] =
-          "${photoSignalInputFieldBloc.value?.path};;${photoSignalInputFieldBloc
-              .value?.name}";
-        } else if (mapKey == "p_pbo_avant") {
-          // jsonMapContent[mapKey] = pPboAvantTextField.value?.path;
+              "${testSignalViaPmInputFieldBloc.value?.path};;${testSignalViaPmInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_prise_avant") {
           jsonMapContent[mapKey] =
-          "${photoResolutionProblemeInputFieldBloc.value
-              ?.path};;${photoResolutionProblemeInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_pbo_apres") {
-          // jsonMapContent[mapKey] = pPboApresTextField.value?.path;
+              "${priseAvantInputFieldBloc.value?.path};;${priseAvantInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_prise_apres") {
           jsonMapContent[mapKey] =
-          "${photoSup1InputFieldBloc.value?.path};;${photoSup1InputFieldBloc
-              .value?.name}";
-        } else if (mapKey == "photo_blocage1") {
-          // jsonMapContent[mapKey] = pSpeedTest.value?.path;
+              "${priseApresInputFieldBloc.value?.path};;${priseApresInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_passage_cable_avant") {
           jsonMapContent[mapKey] =
-          "${photoSup2InputFieldBloc.value?.path};;${photoSup2InputFieldBloc
-              .value?.name}";
+              "${passageCableAvantInputFieldBloc.value?.path};;${passageCableAvantInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_passage_cable_apres") {
+          jsonMapContent[mapKey] =
+              "${passageCableApresInputFieldBloc.value?.path};;${passageCableApresInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_cassette_recto") {
+          jsonMapContent[mapKey] =
+              "${cassetteRectoInputFieldBloc.value?.path};;${cassetteRectoInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_cassette_verso") {
+          jsonMapContent[mapKey] =
+              "${cassetteVersoInputFieldBloc.value?.path};;${cassetteVersoInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_speed_test") {
+          jsonMapContent[mapKey] =
+              "${speedTestInputFieldBloc.value?.path};;${speedTestInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_dos_routeur_cin") {
+          jsonMapContent[mapKey] =
+              "${dosRouteurCinInputFieldBloc.value?.path};;${dosRouteurCinInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_nap_fat_bb_ouvert") {
+          jsonMapContent[mapKey] =
+              "${napFatBbOuvertInputFieldBloc.value?.path};;${napFatBbOuvertInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_nap_fat_bb_ferme") {
+          jsonMapContent[mapKey] =
+              "${napFatBbFermeInputFieldBloc.value?.path};;${napFatBbFermeInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_slimbox_ouvert") {
+          jsonMapContent[mapKey] =
+              "${slimboxOuvertInputFieldBloc.value?.path};;${slimboxOuvertInputFieldBloc.value?.name}";
+        } else if (mapKey == "p_slimbox_ferme") {
+          jsonMapContent[mapKey] =
+              "${slimboxFermeInputFieldBloc.value?.path};;${slimboxFermeInputFieldBloc.value?.name}";
         }
       }
 
@@ -483,29 +562,52 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     });
 
     try {
-      responseGetListPannes = await Tools.getPannesListFromLocalAndInternet();
+      responseGetListEtats = await Tools.getEtatsListFromLocalAndInternet();
+      etatsDropDown.updateItems(responseGetListEtats.etats ?? []);
 
-      panneDropDown.updateItems(responseGetListPannes.pannes ?? []);
-
-      final List<FieldBloc> allFields =
-      dynamicFields.values.expand((list) => list).toList();
-      for (var dynamicField in allFields) {
-        if (dynamicField is SelectFieldBloc<Panne, dynamic>) {
-          dynamicField.updateItems(responseGetListPannes.pannes ?? []);
-        }
-      }
-
-      if (Tools.userName.toLowerCase().contains("admin")) {
-        addFieldBlocs(fieldBlocs: [
-          commentaireSupTextField,
-        ]);
-      }
+      responseGetFieldOptions =
+          await Tools.getFieldOptionsFromLocalAndInternet();
+      // Update dropdowns
+      updateDropdownItems(
+        fieldOptions: responseGetFieldOptions.fieldOptions,
+        dropdown: offreDropDown,
+        key: 'offre',
+      );
+      updateDropdownItems(
+        fieldOptions: responseGetFieldOptions.fieldOptions,
+        dropdown: articleDropDown,
+        key: 'article',
+      );
+      updateDropdownItems(
+        fieldOptions: responseGetFieldOptions.fieldOptions,
+        dropdown: boiteTypeDropDown,
+        key: 'boite_type',
+      );
+      updateDropdownItems(
+        fieldOptions: responseGetFieldOptions.fieldOptions,
+        dropdown: positionDropDown,
+        key: 'position',
+      );
+      updateDropdownItems(
+        fieldOptions: responseGetFieldOptions.fieldOptions,
+        dropdown: etatProvisioningDropDown,
+        key: 'etat_provisioning',
+      );
       emitLoaded();
-      // emitFailure(failureResponse: "loadingTestFinish");
     } catch (e) {
       print(e);
       emitLoadFailed(failureResponse: e.toString());
     }
+  }
+
+  void updateDropdownItems({
+    required List<FieldOptionGroup> fieldOptions,
+    required SelectFieldBloc dropdown,
+    required String key,
+  }) {
+    final group = fieldOptions.firstWhere((g) => g.key == key,
+        orElse: () => FieldOptionGroup(key: key, label: '', options: []));
+    dropdown.updateItems(group.options);
   }
 
   @override
@@ -535,47 +637,64 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   Future<String> callWsAddMobile(Map<String, dynamic> formDateValues) async {
     print("****** callWsAddMobile ***");
 
-    String fileName = DateTime
-        .now()
-        .millisecondsSinceEpoch
-        .toString();
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
 
     if (Tools.localWatermark == true) {
       print("Local watermark start ");
       for (var mapKey in formDateValues.keys) {
         print("mapKey ==> $mapKey");
-        if (mapKey == "photo_probleme" ||
-            mapKey == "photo_signal" ||
-            mapKey == "photo_resolution_probleme" ||
-            mapKey == "photo_sup1" ||
-            mapKey == "photo_sup2") {
+        if (mapKey == "p_routeur_allume" ||
+            mapKey == "p_test_signal_via_pm" ||
+            mapKey == "p_prise_avant" ||
+            mapKey == "p_prise_apres" ||
+            mapKey == "p_passage_cable_avant" ||
+            mapKey == "p_passage_cable_apres" ||
+            mapKey == "p_cassette_recto" ||
+            mapKey == "p_cassette_verso" ||
+            mapKey == "p_speed_test" ||
+            mapKey == "p_dos_routeur_cin" ||
+            mapKey == "p_nap_fat_bb_ouvert" ||
+            mapKey == "p_nap_fat_bb_ferme" ||
+            mapKey == "p_slimbox_ouvert" ||
+            mapKey == "p_slimbox_ferme") {
           try {
             if (formDateValues[mapKey] != null) {
               var xfileSrc;
 
-              if (mapKey == "photo_probleme") {
-                xfileSrc = photoProblemeInputFieldBloc.value;
-              } else if (mapKey == "photo_signal") {
-                xfileSrc = photoSignalInputFieldBloc.value;
-              } else if (mapKey == "photo_resolution_probleme") {
-                xfileSrc = photoResolutionProblemeInputFieldBloc.value;
-              } else if (mapKey == "photo_sup1") {
-                xfileSrc = photoSup1InputFieldBloc.value;
-              } else if (mapKey == "photo_sup2") {
-                xfileSrc = photoSup2InputFieldBloc.value;
+              if (mapKey == "p_routeur_allume") {
+                xfileSrc = routeurAllumeInputFieldBloc.value;
+              } else if (mapKey == "p_test_signal_via_pm") {
+                xfileSrc = testSignalViaPmInputFieldBloc.value;
+              } else if (mapKey == "p_prise_avant") {
+                xfileSrc = priseAvantInputFieldBloc.value;
+              } else if (mapKey == "p_prise_apres") {
+                xfileSrc = priseApresInputFieldBloc.value;
+              } else if (mapKey == "p_passage_cable_avant") {
+                xfileSrc = passageCableAvantInputFieldBloc.value;
+              } else if (mapKey == "p_passage_cable_apres") {
+                xfileSrc = passageCableApresInputFieldBloc.value;
+              } else if (mapKey == "p_cassette_recto") {
+                xfileSrc = cassetteRectoInputFieldBloc.value;
+              } else if (mapKey == "p_cassette_verso") {
+                xfileSrc = cassetteVersoInputFieldBloc.value;
+              } else if (mapKey == "p_speed_test") {
+                xfileSrc = speedTestInputFieldBloc.value;
+              } else if (mapKey == "p_dos_routeur_cin") {
+                xfileSrc = dosRouteurCinInputFieldBloc.value;
+              } else if (mapKey == "p_nap_fat_bb_ouvert") {
+                xfileSrc = napFatBbOuvertInputFieldBloc.value;
+              } else if (mapKey == "p_nap_fat_bb_ferme") {
+                xfileSrc = napFatBbFermeInputFieldBloc.value;
+              } else if (mapKey == "p_slimbox_ouvert") {
+                xfileSrc = slimboxOuvertInputFieldBloc.value;
+              } else if (mapKey == "p_slimbox_ferme") {
+                xfileSrc = slimboxFermeInputFieldBloc.value;
               }
 
               final File fileResult = File(xfileSrc?.path ?? "");
 
               final image =
               imagePLugin.decodeImage(fileResult.readAsBytesSync())!;
-
-              // imagePLugin.Image image = imagePLugin.copyResize(thumbnail, width: 960) ;
-
-              // imagePLugin.drawString(
-              //     image, imagePLugin.arial_24, 0, 0, currentDate);
-              // imagePLugin.drawString(
-              //     image, imagePLugin.arial_24, 0, 32, currentAddress);
 
               File fileResultWithWatermark =
               File(dir.path + "/" + fileName + '.png');
@@ -743,56 +862,136 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     clear();
   }
 
-  void updateInputsFromDemande() {
-    // updateValidatorFromDemande();
-    //
-    // var selectedPanne =
-    // responseGetListPannes.pannes?.firstWhereOrNull((element) {
-    //   return element.id == Tools.selectedDemande?.etatId;
-    // });
-    // print("selectedEtat ==> ${selectedPanne}");
-    //
-    // if (selectedPanne != null) {
-    //   if (panneDropDown.state.items.contains(selectedPanne)) {
-    //     panneDropDown.updateValue(selectedPanne);
-    //   } else {
-    //     panneDropDown.addItem(selectedPanne);
-    //     panneDropDown.updateValue(selectedPanne);
-    //   }
-    // }
-    //
-    //
-    // latitudeTextField.updateValue(Tools.selectedDemande?.latitude ?? "");
-    // longintudeTextField.updateValue(Tools.selectedDemande?.longitude ?? "");
-    // adresseMacTextField.updateValue(Tools.selectedDemande?.adresseMac ?? "");
-    // macAncienneBoxTextField.updateValue(Tools.selectedDemande?.snTel ?? "");
-    // snRouteurTextField.updateValue(Tools.selectedDemande?.snRouteur ?? "");
+  void updateInputsFromDemande() async {
+    try {
+      // Update validators if necessary
+      updateValidatorFromDemande();
 
+      // Update text fields
+      cableFibreTextField.updateValue(Tools.selectedDemande?.cableFibre ?? "");
+      numFatTextField.updateValue(Tools.selectedDemande?.numFat ?? "");
+      numSplitterTextField.updateValue(Tools.selectedDemande?.numSplitter ?? "");
+      numSlimboxTextField.updateValue(Tools.selectedDemande?.numSlimbox ?? "");
+      speedUploadTextField.updateValue(Tools.selectedDemande?.speedUpload ?? "");
+      speedDownloadTextField.updateValue(Tools.selectedDemande?.speedDownload ?? "");
+      commentaireTextField.updateValue(Tools.selectedDemande?.commentaire ?? "");
+      latitudeTextField.updateValue(Tools.selectedDemande?.latitude ?? "");
+      longintudeTextField.updateValue(Tools.selectedDemande?.longitude ?? "");
+      adresseMacTextField.updateValue(Tools.selectedDemande?.adresseMac ?? "");
+      snRouteurTextField.updateValue(Tools.selectedDemande?.snRouteur ?? "");
+      refRouteurTextField.updateValue(Tools.selectedDemande?.refRouteur ?? "");
+
+      // Fetch and update dropdown lists
+      var responseGetListEtats = await Tools.getEtatsListFromLocalAndInternet();
+      etatsDropDown.updateItems(responseGetListEtats.etats ?? []);
+
+      var responseGetFieldOptions = await Tools.getFieldOptionsFromLocalAndInternet();
+
+      // Update dropdowns dynamically
+      updateDropdownItemsData(
+        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
+        dropdown: offreDropDown,
+        key: 'offre',
+        selectedId: Tools.selectedDemande?.offreId,
+      );
+      updateDropdownItemsData(
+        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
+        dropdown: articleDropDown,
+        key: 'article',
+        selectedId: Tools.selectedDemande?.articleId,
+      );
+      updateDropdownItemsData(
+        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
+        dropdown: boiteTypeDropDown,
+        key: 'boite_type',
+        selectedId: Tools.selectedDemande?.boiteTypeId,
+      );
+      updateDropdownItemsData(
+        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
+        dropdown: positionDropDown,
+        key: 'position',
+        selectedId: Tools.selectedDemande?.positionId,
+      );
+      updateDropdownItemsData(
+        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
+        dropdown: etatProvisioningDropDown,
+        key: 'etat_provisioning',
+        selectedId: Tools.selectedDemande?.etatProvisioningId,
+      );
+
+      // Update file fields
+      // routeurAllumeInputFieldBloc.updateValue(Tools.selectedDemande?.routeurAllumeFile);
+      // testSignalViaPmInputFieldBloc.updateValue(Tools.selectedDemande?.testSignalViaPmFile);
+      // priseAvantInputFieldBloc.updateValue(Tools.selectedDemande?.priseAvantFile);
+      // priseApresInputFieldBloc.updateValue(Tools.selectedDemande?.priseApresFile);
+      // passageCableAvantInputFieldBloc.updateValue(Tools.selectedDemande?.passageCableAvantFile);
+      // passageCableApresInputFieldBloc.updateValue(Tools.selectedDemande?.passageCableApresFile);
+      // cassetteRectoInputFieldBloc.updateValue(Tools.selectedDemande?.cassetteRectoFile);
+      // cassetteVersoInputFieldBloc.updateValue(Tools.selectedDemande?.cassetteVersoFile);
+      // speedTestInputFieldBloc.updateValue(Tools.selectedDemande?.speedTestFile);
+      // dosRouteurCinInputFieldBloc.updateValue(Tools.selectedDemande?.dosRouteurCinFile);
+      // napFatBbOuvertInputFieldBloc.updateValue(Tools.selectedDemande?.napFatBbOuvertFile);
+      // napFatBbFermeInputFieldBloc.updateValue(Tools.selectedDemande?.napFatBbFermeFile);
+      // slimboxOuvertInputFieldBloc.updateValue(Tools.selectedDemande?.slimboxOuvertFile);
+      // slimboxFermeInputFieldBloc.updateValue(Tools.selectedDemande?.slimboxFermeFile);
+
+      // Update date field
+      // dateRdvInputFieldBLoc.updateValue(Tools.selectedDemande?.dateRdv);
+    } catch (e) {
+      print(e);
+      // Handle error (e.g., display error message or fallback behavior)
+    }
   }
 
+  void updateDropdownItemsData({
+    required List<FieldOptionGroup> fieldOptionGroups,
+    required SelectFieldBloc<FieldOption, dynamic> dropdown,
+    required String key,
+    String? selectedId,
+  }) {
+    // Find the field option group by key
+    var fieldOptionGroup = fieldOptionGroups.firstWhere(
+          (group) => group.key == key,
+      orElse: () => FieldOptionGroup(key: key, label: '', options: []),
+    );
+
+    // Update dropdown items with options from the found group
+    dropdown.updateItems(fieldOptionGroup.options);
+
+    // Update the selected value if a matching ID exists
+    if (selectedId != null) {
+      var selectedOption = fieldOptionGroup.options.firstWhere(
+            (option) => option.id == selectedId,
+      );
+      dropdown.updateValue(selectedOption);
+    }
+  }
+
+
+
   void updateValidatorFromDemande() {
-  //   if (Tools.selectedDemande?.pPbiAvant?.isNotEmpty == true) {
-  //     print("removeValidators pPbiAvantTextField");
-  //     photoProblemeInputFieldBloc.removeValidators([
-  //       FieldBlocValidators.required,
-  //     ]);
-  //   } else {
-  //     print("addValidators pPbiAvantTextField");
-  //
-  //     photoProblemeInputFieldBloc.addValidators([
-  //       FieldBlocValidators.required,
-  //     ]);
-  //   }
-  //
-  //   if (Tools.selectedDemande?.pPbiApres?.isNotEmpty == true) {
-  //     photoSignalInputFieldBloc.removeValidators([
-  //       FieldBlocValidators.required,
-  //     ]);
-  //   } else {
-  //     photoSignalInputFieldBloc.addValidators([
-  //       FieldBlocValidators.required,
-  //     ]);
-  //   }
+    //   if (Tools.selectedDemande?.pPbiAvant?.isNotEmpty == true) {
+    //     print("removeValidators pPbiAvantTextField");
+    //     photoProblemeInputFieldBloc.removeValidators([
+    //       FieldBlocValidators.required,
+    //     ]);
+    //   } else {
+    //     print("addValidators pPbiAvantTextField");
+    //
+    //     photoProblemeInputFieldBloc.addValidators([
+    //       FieldBlocValidators.required,
+    //     ]);
+    //   }
+    //
+    //   if (Tools.selectedDemande?.pPbiApres?.isNotEmpty == true) {
+    //     photoSignalInputFieldBloc.removeValidators([
+    //       FieldBlocValidators.required,
+    //     ]);
+    //   } else {
+    //     photoSignalInputFieldBloc.addValidators([
+    //       FieldBlocValidators.required,
+    //     ]);
+    //   }
   }
 }
 
@@ -840,7 +1039,7 @@ class _InterventionFormState extends State<InterventionForm>
   }
 
   ValueNotifier<int> commentaireCuuntValueNotifer =
-  ValueNotifier(Tools.selectedDemande?.commentaires?.length ?? 0);
+      ValueNotifier(Tools.selectedDemande?.commentaires?.length ?? 0);
 
   late Animation<double> _animation;
   late AnimationController _animationController;
@@ -853,7 +1052,7 @@ class _InterventionFormState extends State<InterventionForm>
     );
 
     final curvedAnimation =
-    CurvedAnimation(curve: Curves.easeInOut, parent: _animationController);
+        CurvedAnimation(curve: Curves.easeInOut, parent: _animationController);
     _animation = Tween<double>(begin: 0, end: 1).animate(curvedAnimation);
 
     super.initState();
@@ -908,7 +1107,7 @@ class _InterventionFormState extends State<InterventionForm>
                 key: formStepperScaffoldKey,
                 resizeToAvoidBottomInset: true,
                 floatingActionButtonLocation:
-                FloatingActionButtonLocation.miniStartFloat,
+                    FloatingActionButtonLocation.miniStartFloat,
 
                 //Init Floating Action Bubble
                 floatingActionButton: ValueListenableBuilder(
@@ -933,14 +1132,16 @@ class _InterventionFormState extends State<InterventionForm>
                                 onPress: () async {
                                   print("share wtsp");
 
-                                  String msgShare = Tools.getMsgShare(currentStepNotifier);
-
+                                  String msgShare =
+                                      Tools.getMsgShare(currentStepNotifier);
 
                                   print("msgShare ==> ${msgShare}");
 
                                   // shareToWhatsApp({String msg,String imagePath})
-                                  final FlutterSocialShare flutterShareMe = FlutterSocialShare();
-                                  await flutterShareMe.shareToWhatsApp(msg: msgShare);
+                                  final FlutterSocialShare flutterShareMe =
+                                      FlutterSocialShare();
+                                  await flutterShareMe.shareToWhatsApp(
+                                      msg: msgShare);
 
                                   /*
                           var whatsapp = "+212619993849";
@@ -988,8 +1189,7 @@ class _InterventionFormState extends State<InterventionForm>
                                         context: context,
                                         type: CoolAlertType.success,
                                         text: "Email Envoyé avec succès",
-                                        autoCloseDuration:
-                                        Duration(seconds: 5),
+                                        autoCloseDuration: Duration(seconds: 5),
                                         title: "Succès");
                                   }
                                   _animationController.reverse();
@@ -1002,8 +1202,7 @@ class _InterventionFormState extends State<InterventionForm>
                             animation: _animation,
 
                             // On pressed change animation state
-                            onPress: () =>
-                            _animationController.isCompleted
+                            onPress: () => _animationController.isCompleted
                                 ? _animationController.reverse()
                                 : _animationController.forward(),
 
@@ -1021,7 +1220,7 @@ class _InterventionFormState extends State<InterventionForm>
                     builder: (BuildContext context) {
                       final ScaffoldState? scaffold = Scaffold.maybeOf(context);
                       final ModalRoute<Object?>? parentRoute =
-                      ModalRoute.of(context);
+                          ModalRoute.of(context);
                       final bool hasEndDrawer = scaffold?.hasEndDrawer ?? false;
                       final bool canPop = parentRoute?.canPop ?? false;
 
@@ -1149,98 +1348,55 @@ class _InterventionFormState extends State<InterventionForm>
                           //
                           //
                           // },
-                          controlsBuilder: (BuildContext context,
-                              VoidCallback? onStepContinue,
-                              VoidCallback? onStepCancel,
-                              int step,
-                              FormBloc formBloc,) {
+                          controlsBuilder: (
+                            BuildContext context,
+                            VoidCallback? onStepContinue,
+                            VoidCallback? onStepCancel,
+                            int step,
+                            FormBloc formBloc,
+                          ) {
                             return Column(
                               children: <Widget>[
                                 Row(
                                   children: <Widget>[
-                                    SizedBox(
+                                    const SizedBox(
                                       height: 50,
                                     ),
                                     Expanded(
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
-                                        // padding: const  EdgeInsets.only(top: 8,left: 8,right: 8, bottom: 20),
-
                                         child: ElevatedButton(
                                           onPressed: () async {
-                                            print("cliick");
-                                            // formBloc.readJson();
-                                            // formBloc.fileTraitementList.writeAsStringSync("");
-
-                                            // bool isLocationServiceOK = await ToolsExtra.checkLocationService();
-                                            // if(isLocationServiceOK == false){
-                                            //   return;
-                                            // }
-
-                                            formBloc.submit();
+                                            print("Submit button clicked");
+                                            formBloc.submit(); // Submit the form
                                           },
                                           child: const Text(
                                             'Enregistrer',
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                               fontSize: 18.0,
-                                              wordSpacing: 12,
+                                              fontWeight: FontWeight.w500,
+                                              letterSpacing: 1.2,
                                             ),
                                           ),
                                           style: ElevatedButton.styleFrom(
-                                            // shape: CircleBorder(),
-                                            minimumSize: Size(280, 50),
-
-                                            // primary: Tools.colorPrimary,
+                                            backgroundColor: Theme.of(context).primaryColor, // Button color
+                                            foregroundColor: Colors.white, // Text color
+                                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                            minimumSize: const Size(280, 50), // Button size
                                             shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                              new BorderRadius.circular(
-                                                  30.0),
+                                              borderRadius: BorderRadius.circular(30.0), // Rounded edges
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                    if (!formBloc.state.isFirstStep &&
-                                        !formBloc.state.isLastStep)
-                                    // Expanded(
-                                    //   child: ElevatedButton(
-                                    //     onPressed: () {
-                                    //       print("cliick");
-                                    //       // formBloc.readJson();
-                                    //       // formBloc.fileTraitementList.writeAsStringSync("");
-                                    //
-                                    //       // context.read<formBloc>().clear();
-                                    //
-                                    //
-                                    //
-                                    //       onStepCancel!() ;
-                                    //     },
-                                    //     child: const Text('Annuler',
-                                    //       textAlign: TextAlign.center,
-                                    //       style: TextStyle(
-                                    //         fontSize: 18.0,
-                                    //         wordSpacing: 12,
-                                    //       ),
-                                    //     ),
-                                    //     style: ElevatedButton.styleFrom(
-                                    //       primary: Colors.grey,
-                                    //       // shape: CircleBorder(),
-                                    //       minimumSize: Size(200, 50),
-                                    //       // primary: Tools.colorPrimary,
-                                    //       shape: RoundedRectangleBorder(
-                                    //         borderRadius: new BorderRadius.circular(30.0),
-                                    //       ),
-                                    //
-                                    //     ),
-                                    //   ),
-                                    // ),
-                                      SizedBox(
-                                        height: 50,
-                                      ),
-//                              Text(Translations.of(context).confidential)
                                   ],
                                 ),
+                                if (!formBloc.state.isFirstStep && !formBloc.state.isLastStep)
+                                  const SizedBox(
+                                    height: 50,
+                                  ),
                               ],
                             );
                           },
@@ -1285,10 +1441,7 @@ class _InterventionFormState extends State<InterventionForm>
                                 child: Center(
                                   child: Container(
                                     color: Colors.grey.shade400,
-                                    width: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .width,
+                                    width: MediaQuery.of(context).size.width,
                                     padding: const EdgeInsets.all(0.0),
                                     child: Center(
                                       child: Padding(
@@ -1331,99 +1484,231 @@ class _InterventionFormState extends State<InterventionForm>
           SizedBox(
             height: 20,
           ),
-          if (Tools.selectedDemande?.etatId == "9")
-            Container(
-              padding: const EdgeInsets.only(bottom: 30),
-              child: Text(
-                Tools.selectedDemande?.etatName ?? "",
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-          DropdownFieldBlocBuilder<Panne>(
-            selectFieldBloc: formBloc.panneDropDown,
+          buildSizedDivider(),
+          DropdownFieldBlocBuilder<Etat>(
+            selectFieldBloc: formBloc.etatsDropDown,
             decoration: const InputDecoration(
-              labelText: 'Panne :',
+              labelText: 'Etat :',
               prefixIcon: Icon(Icons.list),
             ),
-            itemBuilder: (context, value) =>
-                FieldItem(
-                  child: Text(value.name ?? ""),
-                ),
-          ),
-          DropdownFieldBlocBuilder<Solution>(
-            selectFieldBloc: formBloc.solutionEtatDropDown,
-            decoration: const InputDecoration(
-              labelText: 'Solution',
-              prefixIcon: Padding(
-                padding: const EdgeInsets.only(top: 10, left: 12),
-                child: FaIcon(
-                  FontAwesomeIcons.scribd,
-                ),
-              ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value.name ?? ""),
             ),
-            itemBuilder: (context, value) =>
-                FieldItem(
-                  child: Text(value.name ?? ""),
-                ),
+          ),
+          DropdownFieldBlocBuilder<SousEtat>(
+            selectFieldBloc: formBloc.sousEtatsDropDown,
+            decoration: const InputDecoration(
+              labelText: 'Motif du blocage :',
+              prefixIcon: Icon(Icons.list),
+            ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value.name ?? ""),
+            ),
+          ),
+          buildSizedDivider(),
+          DropdownFieldBlocBuilder<FieldOption>(
+            selectFieldBloc: formBloc.offreDropDown,
+            decoration: const InputDecoration(
+              labelText: 'Offre :',
+              prefixIcon: Icon(Icons.list),
+            ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value.name ?? ""),
+            ),
+          ),
+          DropdownFieldBlocBuilder<FieldOption>(
+            selectFieldBloc: formBloc.articleDropDown,
+            decoration: const InputDecoration(
+              labelText: 'Equipement :',
+              prefixIcon: Icon(Icons.list),
+            ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value.name ?? ""),
+            ),
+          ),
+          DropdownFieldBlocBuilder<FieldOption>(
+            selectFieldBloc: formBloc.boiteTypeDropDown,
+            decoration: const InputDecoration(
+              labelText: 'Boite type :',
+              prefixIcon: Icon(Icons.list),
+            ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value.name ?? ""),
+            ),
+          ),
+          DropdownFieldBlocBuilder<FieldOption>(
+            selectFieldBloc: formBloc.positionDropDown,
+            decoration: const InputDecoration(
+              labelText: 'Position :',
+              prefixIcon: Icon(Icons.list),
+            ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value.name ?? ""),
+            ),
+          ),
+          DropdownFieldBlocBuilder<FieldOption>(
+            selectFieldBloc: formBloc.etatProvisioningDropDown,
+            decoration: const InputDecoration(
+              labelText: 'Etat provisioning :',
+              prefixIcon: Icon(Icons.list),
+            ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value.name ?? ""),
+            ),
+          ),
+          buildSizedDivider(),
+          TextFieldBlocBuilder(
+            textFieldBloc: formBloc.cableFibreTextField,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: "Cable fibre :",
+              prefixIcon: Icon(Icons.cable),
+            ),
           ),
           TextFieldBlocBuilder(
-            textFieldBloc: formBloc.qteTextField,
-            keyboardType:
-            TextInputType.numberWithOptions(decimal: true, signed: true),
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.digitsOnly,
-            ],
+            textFieldBloc: formBloc.numFatTextField,
+            keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: "Qte (Unité):",
-              // prefixIcon: Icon(Icons.speed),
-              prefixIcon: Padding(
-                padding: const EdgeInsets.only(top: 10, left: 12),
-                child: FaIcon(
-                  FontAwesomeIcons.houseSignal,
-                ),
-              ),
+              labelText: "Num fat :",
+              prefixIcon: Icon(Icons.numbers),
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          TextFieldBlocBuilder(
+            textFieldBloc: formBloc.numSplitterTextField,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: "Num splitter :",
+              prefixIcon: Icon(Icons.scatter_plot),
+            ),
+          ),
+          TextFieldBlocBuilder(
+            textFieldBloc: formBloc.numSlimboxTextField,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: "Num slimbox :",
+              prefixIcon: Icon(Icons.storage),
+            ),
+          ),
+          TextFieldBlocBuilder(
+            textFieldBloc: formBloc.speedUploadTextField,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: "Speed upload :",
+              prefixIcon: Icon(Icons.upload),
+            ),
+          ),
+          TextFieldBlocBuilder(
+            textFieldBloc: formBloc.speedDownloadTextField,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              labelText: "Speed download :",
+              prefixIcon: Icon(Icons.download),
+            ),
+          ),
+          buildSizedDivider(),
+          Container(
+              child: Row(
             children: [
-              FilledButton.icon(
-                onPressed: () {
-                  displayExtraPanneDialog(context, formBloc);
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Ajouter'),
-              ),
-              FilledButton.icon(
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(Colors.red),
-
+              Flexible(
+                flex: 5,
+                child: Container(
+                  child: Column(
+                    children: [
+                      TextFieldBlocBuilder(
+                        readOnly: true,
+                        textFieldBloc: formBloc.latitudeTextField,
+                        clearTextIcon: Icon(Icons.cancel),
+                        suffixButton: SuffixButton.clearText,
+                        keyboardType: TextInputType.text,
+                        decoration: InputDecoration(
+                          labelText: "Latitude ",
+                          prefixIcon: Icon(Icons.location_on),
+                          disabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 1,
+                                // color: Tools.colorPrimary
+                              ),
+                              borderRadius: BorderRadius.circular(20)),
+                        ),
+                      ),
+                      TextFieldBlocBuilder(
+                        readOnly: true,
+                        textFieldBloc: formBloc.longintudeTextField,
+                        keyboardType: TextInputType.text,
+                        clearTextIcon: Icon(Icons.cancel),
+                        suffixButton: SuffixButton.clearText,
+                        decoration: InputDecoration(
+                          labelText: "Longitude ",
+                          prefixIcon: Icon(Icons.location_on),
+                          disabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                width: 1,
+                                // color: Tools.colorPrimary
+                              ),
+                              borderRadius: BorderRadius.circular(20)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () {
-                  removeLastDynamicField(context, formBloc);
-                },
-                icon: const Icon(Icons.remove),
-                label: const Text('supprimer'),
+              ),
+              Flexible(
+                // flex: 2,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      bool isLocationServiceOK =
+                          await ToolsExtra.checkLocationService();
+                      if (isLocationServiceOK == false) {
+                        CoolAlert.show(
+                            context: context,
+                            type: CoolAlertType.error,
+                            text:
+                                "Les services de localisation sont désactivés.",
+                            autoCloseDuration: Duration(seconds: 5),
+                            title: "Erreur");
+
+                        return;
+                      }
+
+                      Position? position = await Tools.determinePosition();
+
+                      if (position != null) {
+                        formBloc.latitudeTextField
+                            .updateValue(position.latitude.toStringAsFixed(4));
+                        formBloc.longintudeTextField
+                            .updateValue(position.longitude.toStringAsFixed(4));
+
+                        print("heeeeeee 3 ${position}");
+                      }
+                    } catch (e) {
+                      print(e);
+                      // showSimpleNotification(
+                      //   Text("Erreur"),
+                      //   subtitle: Text(e.toString()),
+                      //   background: Colors.green,
+                      //   duration: Duration(seconds: 5),
+                      // );
+
+                      CoolAlert.show(
+                          context: context,
+                          type: CoolAlertType.error,
+                          text: e.toString(),
+                          autoCloseDuration: Duration(seconds: 5),
+                          title: "Erreur");
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    // primary: Tools.colorPrimary,
+                    shape: CircleBorder(),
+                    padding: EdgeInsets.all(10),
+                  ),
+                  child: const Icon(Icons.my_location),
+                ),
               ),
             ],
-          ),
-          buildDynamicFieldItems(formBloc),
-          DropdownFieldBlocBuilder<Article>(
-            selectFieldBloc: formBloc.articlesDropDown,
-            decoration: const InputDecoration(
-              labelText: 'Routeur :',
-              prefixIcon: Padding(
-                padding: const EdgeInsets.only(top: 10, left: 12),
-                child: FaIcon(
-                  FontAwesomeIcons.scribd,
-                ),
-              ),
-            ),
-            itemBuilder: (context, value) =>
-                FieldItem(
-                  child: Text(value.name ?? ""),
-                ),
-          ),
+          )),
+          buildSizedDivider(),
           QrScannerTextFieldBlocBuilder(
             formBloc: formBloc,
             iconField: Padding(
@@ -1454,216 +1739,180 @@ class _InterventionFormState extends State<InterventionForm>
                 FontAwesomeIcons.terminal,
               ),
             ),
-            labelText: "SN G-PON :",
-            qrCodeTextFieldBloc: formBloc.snGponTextField,
+            labelText: "Ref routeur :",
+            qrCodeTextFieldBloc: formBloc.refRouteurTextField,
           ),
-          QrScannerTextFieldBlocBuilder(
-            formBloc: formBloc,
-            iconField: Padding(
-              padding: const EdgeInsets.only(top: 10, left: 12),
-              child: FaIcon(
-                FontAwesomeIcons.terminal,
-              ),
+          buildSizedDivider(),
+          DateTimeFieldBlocBuilder(
+            dateTimeFieldBloc: formBloc.dateRdvInputFieldBLoc,
+            format: DateFormat('yyyy-MM-dd HH:mm'),
+            //  Y-m-d H:i:s
+            initialDate: DateTime.now(),
+            firstDate: DateTime.now(),
+            lastDate: DateTime(2100),
+            canSelectTime: true,
+            decoration: const InputDecoration(
+              labelText: 'Rendez-vous',
+              prefixIcon: Icon(Icons.date_range),
             ),
-            labelText: "MAC Ancienne Box :",
-            qrCodeTextFieldBloc: formBloc.macAncienneBoxTextField,
-          ),
-          QrScannerTextFieldBlocBuilder(
-            formBloc: formBloc,
-            iconField: Padding(
-              padding: const EdgeInsets.only(top: 10, left: 12),
-              child: FaIcon(
-                FontAwesomeIcons.terminal,
-              ),
-            ),
-            labelText: "SN Ancienne Box :",
-            qrCodeTextFieldBloc: formBloc.snAncienneBoxTextField,
-          ),
-          QrScannerTextFieldBlocBuilder(
-            formBloc: formBloc,
-            iconField: Padding(
-              padding: const EdgeInsets.only(top: 10, left: 12),
-              child: FaIcon(
-                FontAwesomeIcons.terminal,
-              ),
-            ),
-            labelText: "SN Ancienne G-PON :",
-            qrCodeTextFieldBloc: formBloc.snAncienneGponTextField,
           ),
           buildSizedDivider(),
           Container(
               child: Row(
-                children: [
-                  Flexible(
-                    flex: 5,
-                    child: Container(
-                      child: Column(
-                        children: [
-                          TextFieldBlocBuilder(
-                            readOnly: true,
-                            textFieldBloc: formBloc.latitudeTextField,
-                            clearTextIcon: Icon(Icons.cancel),
-                            suffixButton: SuffixButton.clearText,
-                            keyboardType: TextInputType.text,
-                            decoration: InputDecoration(
-                              labelText: "Latitude ",
-                              prefixIcon: Icon(Icons.location_on),
-                              disabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    width: 1,
-                                    // color: Tools.colorPrimary
-                                  ),
-                                  borderRadius: BorderRadius.circular(20)),
-                            ),
-                          ),
-                          TextFieldBlocBuilder(
-                            readOnly: true,
-                            textFieldBloc: formBloc.longintudeTextField,
-                            keyboardType: TextInputType.text,
-                            clearTextIcon: Icon(Icons.cancel),
-                            suffixButton: SuffixButton.clearText,
-                            decoration: InputDecoration(
-                              labelText: "Longitude ",
-                              prefixIcon: Icon(Icons.location_on),
-                              disabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    width: 1,
-                                    // color: Tools.colorPrimary
-                                  ),
-                                  borderRadius: BorderRadius.circular(20)),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Flexible(
-                    // flex: 2,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        try {
-                          bool isLocationServiceOK =
-                          await ToolsExtra.checkLocationService();
-                          if (isLocationServiceOK == false) {
-                            CoolAlert.show(
-                                context: context,
-                                type: CoolAlertType.error,
-                                text:
-                                "Les services de localisation sont désactivés.",
-                                autoCloseDuration: Duration(seconds: 5),
-                                title: "Erreur");
-
-                            return;
-                          }
-
-                          Position? position = await Tools.determinePosition();
-
-                          if (position != null) {
-                            formBloc.latitudeTextField
-                                .updateValue(position.latitude.toStringAsFixed(
-                                4));
-                            formBloc.longintudeTextField
-                                .updateValue(position.longitude.toStringAsFixed(
-                                4));
-
-                            print("heeeeeee 3 ${position}");
-                          }
-                        } catch (e) {
-                          print(e);
-                          // showSimpleNotification(
-                          //   Text("Erreur"),
-                          //   subtitle: Text(e.toString()),
-                          //   background: Colors.green,
-                          //   duration: Duration(seconds: 5),
-                          // );
-
-                          CoolAlert.show(
-                              context: context,
-                              type: CoolAlertType.error,
-                              text: e.toString(),
-                              autoCloseDuration: Duration(seconds: 5),
-                              title: "Erreur");
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        // primary: Tools.colorPrimary,
-                        shape: CircleBorder(),
-                        padding: EdgeInsets.all(10),
-                      ),
-                      child: const Icon(Icons.my_location),
-                    ),
-                  ),
-                ],
-              )),
-          buildSizedDivider(),
-          Container(
-            // margin: const EdgeInsets.only(top: 20),
-              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                //Center Row contents horizontally,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                //Center Row contents vertically,
                 children: [
                   Flexible(
                     child: ImageFieldBlocBuilder(
                       formBloc: formBloc,
-                      fileFieldBloc: formBloc.photoProblemeInputFieldBloc,
-                      labelText: "Photo problème :",
+                      fileFieldBloc: formBloc.routeurAllumeInputFieldBloc,
+                      labelText: "Routeur allumé :",
                       iconField: Icon(Icons.image_not_supported),
                     ),
                   ),
                   Flexible(
-                    // flex: 2,
                     child: ImageFieldBlocBuilder(
                       formBloc: formBloc,
-                      fileFieldBloc: formBloc.photoSignalInputFieldBloc,
-                      labelText: "Photo Signal :",
+                      fileFieldBloc: formBloc.testSignalViaPmInputFieldBloc,
+                      labelText: "Test signal via PM :",
                       iconField: Icon(Icons.image_not_supported),
                     ),
                   ),
                 ],
               )),
           Container(
-            // margin: const EdgeInsets.only(top: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                //Center Row contents horizontally,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                //Center Row contents vertically,
                 children: [
                   Flexible(
                     child: ImageFieldBlocBuilder(
                       formBloc: formBloc,
-                      fileFieldBloc: formBloc
-                          .photoResolutionProblemeInputFieldBloc,
-                      labelText: "Photo de résolution de problème :",
+                      fileFieldBloc: formBloc.priseAvantInputFieldBloc,
+                      labelText: "Prise avant :",
                       iconField: Icon(Icons.image_not_supported),
                     ),
                   ),
                   Flexible(
-                    // flex: 2,
                     child: ImageFieldBlocBuilder(
                       formBloc: formBloc,
-                      fileFieldBloc: formBloc.photoSup1InputFieldBloc,
-                      labelText: "Photo \n supplémentaire 1 :",
+                      fileFieldBloc: formBloc.priseApresInputFieldBloc,
+                      labelText: "Prise après :",
                       iconField: Icon(Icons.image_not_supported),
                     ),
                   ),
                 ],
               )),
           Container(
-            // margin: const EdgeInsets.only(top: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
-                //Center Row contents horizontally,
                 crossAxisAlignment: CrossAxisAlignment.center,
-                //Center Row contents vertically,
                 children: [
                   Flexible(
                     child: ImageFieldBlocBuilder(
                       formBloc: formBloc,
-                      fileFieldBloc: formBloc.photoSup2InputFieldBloc,
-                      labelText: "Photo supplémentaire 2 :",
+                      fileFieldBloc: formBloc.passageCableAvantInputFieldBloc,
+                      labelText: "Passage câble avant :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.passageCableApresInputFieldBloc,
+                      labelText: "Passage câble après :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                ],
+              )),
+          Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.cassetteRectoInputFieldBloc,
+                      labelText: "Cassette recto :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.cassetteVersoInputFieldBloc,
+                      labelText: "Cassette verso :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                ],
+              )),
+          Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.speedTestInputFieldBloc,
+                      labelText: "Speed test :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.dosRouteurCinInputFieldBloc,
+                      labelText: "Dos routeur CIN :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                ],
+              )),
+          Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.napFatBbOuvertInputFieldBloc,
+                      labelText: "NAP FAT BB ouvert :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.napFatBbFermeInputFieldBloc,
+                      labelText: "NAP FAT BB fermé :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                ],
+              )),
+          Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.slimboxOuvertInputFieldBloc,
+                      labelText: "Slimbox ouvert :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.slimboxFermeInputFieldBloc,
+                      labelText: "Slimbox fermé :",
                       iconField: Icon(Icons.image_not_supported),
                     ),
                   ),
@@ -1680,95 +1929,8 @@ class _InterventionFormState extends State<InterventionForm>
               prefixIcon: Icon(Icons.comment),
             ),
           ),
-          TextFieldBlocBuilder(
-            textFieldBloc: formBloc.commentaireSupTextField,
-            keyboardType: TextInputType.text,
-            minLines: 6,
-            maxLines: 20,
-            decoration: InputDecoration(
-              labelText: "Commentaire supperviseur :",
-              prefixIcon: Icon(Icons.comment),
-            ),
-          ),
         ],
       ),
-    );
-  }
-
-  Widget buildFieldBlocWidget(fieldBloc, index) {
-    print(
-        "buildFieldBlocWidget ==> ${fieldBloc.runtimeType} index ==> ${index}");
-    if (fieldBloc is SelectFieldBloc<Panne, dynamic>) {
-      return DropdownFieldBlocBuilder<Panne>(
-        selectFieldBloc: fieldBloc,
-        decoration: InputDecoration(
-          labelText: 'Panne extra ${index} :',
-          prefixIcon: Icon(Icons.list),
-        ),
-        itemBuilder: (context, value) =>
-            FieldItem(
-              child: Text(value.name ?? ""),
-            ),
-      );
-    } else if (fieldBloc is SelectFieldBloc<Solution, dynamic>) {
-      return DropdownFieldBlocBuilder<Solution>(
-        selectFieldBloc: fieldBloc,
-        decoration: InputDecoration(
-          labelText: 'Solution extra ${index} :',
-          prefixIcon: Icon(Icons.list),
-        ),
-        itemBuilder: (context, value) =>
-            FieldItem(
-              child: Text(value.name ?? ""),
-            ),
-      );
-    } else if (fieldBloc is TextFieldBloc) {
-      return TextFieldBlocBuilder(
-        textFieldBloc: fieldBloc,
-        keyboardType:
-        TextInputType.numberWithOptions(decimal: true, signed: true),
-        inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.digitsOnly,
-        ],
-        decoration: InputDecoration(
-          labelText: "Qte (Unité) extra ${index} :",
-          // prefixIcon: Icon(Icons.speed),
-          prefixIcon: Padding(
-            padding: const EdgeInsets.only(top: 10, left: 12),
-            child: FaIcon(
-              FontAwesomeIcons.houseSignal,
-            ),
-          ),
-        ),
-      ); // Return a default widget if the type is not recognized
-    }
-
-    return Text("azer");
-  }
-
-  Widget buildDynamicFieldItems(InterventionFormBLoc formBloc) {
-    List<Widget> widgets = [];
-
-    for (var entry in formBloc.dynamicFields.entries) {
-      widgets.add(Visibility(
-          visible: formBloc.state
-              .fieldBlocs()
-              ?.containsKey(entry.value.first.name) ??
-              true,
-          child: buildSizedDivider()));
-      for (var fieldBloc in entry.value) {
-        widgets.add(buildFieldBlocWidget(fieldBloc, entry.key));
-      }
-      widgets.add(Visibility(
-          visible: formBloc.state
-              .fieldBlocs()
-              ?.containsKey(entry.value.first.name) ??
-              true,
-          child: buildSizedDivider()));
-    }
-
-    return Column(
-      children: widgets,
     );
   }
 
@@ -1788,55 +1950,14 @@ class _InterventionFormState extends State<InterventionForm>
       ],
     );
   }
-
-  void displayExtraPanneDialog(BuildContext context, InterventionFormBLoc formBloc) {
-      if (formBloc.panneDropDown.value != null) {
-        // Iterate over the existing dynamic fields to find the first not added
-        for (var entry in formBloc.dynamicFields.entries) {
-          var fieldsList = entry.value;
-          if (fieldsList.isNotEmpty) {
-            var firstField = fieldsList.first;
-            bool isFieldAdded = formBloc.state.fieldBlocs()?.containsKey(firstField.name) ?? false;
-            if (!isFieldAdded) {
-              formBloc.addFieldBlocs(fieldBlocs: [firstField]);
-              break;
-            }
-          }
-        }
-      } else {
-        // Add error message if panneDropDown value is null
-        formBloc.panneDropDown.addFieldError(
-          "Veuillez selectionner une panne avant d'ajouter des champs extra",
-        );
-      }
-    }
-
-
-    void removeLastDynamicField(BuildContext context, InterventionFormBLoc formBloc) {
-    // Ensure that there are dynamic fields to remove
-    if (formBloc.dynamicFields.isEmpty) return;
-
-    // Iterate from the last to the first list of dynamic fields
-    for (int i = formBloc.dynamicFields.length - 1; i >= 0; i--) {
-      final fieldsList = formBloc.dynamicFields.values.elementAt(i);
-
-      // Check if any field in the list is added to the form
-      bool isFieldAdded = fieldsList.any((field) => formBloc.state.fieldBlocs()?.containsKey(field.name) ?? false);
-
-      if (isFieldAdded) {
-        formBloc.removeFieldBlocs(fieldBlocs: fieldsList);
-        break;
-      }
-    }
-  }
-
-
 }
 
 class CustomRangeTextInputFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue,
-      TextEditingValue newValue,) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     print("new value ==> ${newValue.text}");
     if (newValue.text == '')
       return TextEditingValue();
@@ -1856,8 +1977,10 @@ class NumericalRangeFormatter extends TextInputFormatter {
   NumericalRangeFormatter({required this.min, required this.max});
 
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue,
-      TextEditingValue newValue,) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     print("oldValue ==> ${oldValue.text}");
     print("newValue ==> ${newValue.text}");
 
@@ -1901,31 +2024,28 @@ class EndDrawerWidget extends StatelessWidget {
                   child: Timeline.tileBuilder(
                     // physics: BouncingScrollPhysics(),
                     builder: TimelineTileBuilder.fromStyle(
-                      contentsBuilder: (context, index) =>
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(Tools.selectedDemande
+                      contentsBuilder: (context, index) => Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(Tools.selectedDemande
                                   ?.commentaires?[index].commentaire ??
-                                  ""),
-                            ),
-                          ),
-                      oppositeContentsBuilder: (context, index) =>
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                                alignment: AlignmentDirectional.centerEnd,
-                                child: Column(
-                                  children: [
-                                    // Text(Tools.selectedDemande?.commentaires?[index].userId ?? ""),
-                                    Text(Tools.selectedDemande
-                                        ?.commentaires?[index]
+                              ""),
+                        ),
+                      ),
+                      oppositeContentsBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: Column(
+                              children: [
+                                // Text(Tools.selectedDemande?.commentaires?[index].userId ?? ""),
+                                Text(Tools.selectedDemande?.commentaires?[index]
                                         .created
                                         ?.trim() ??
-                                        ""),
-                                  ],
-                                )),
-                          ),
+                                    ""),
+                              ],
+                            )),
+                      ),
                       // itemExtent: 1,
                       // indicatorPositionBuilder: (BuildContext context, int index){
                       //   return 0 ;
@@ -1934,7 +2054,7 @@ class EndDrawerWidget extends StatelessWidget {
                       indicatorStyle: IndicatorStyle.dot,
                       connectorStyle: ConnectorStyle.dashedLine,
                       itemCount:
-                      Tools.selectedDemande?.commentaires?.length ?? 0,
+                          Tools.selectedDemande?.commentaires?.length ?? 0,
                     ),
                   ),
                 ),
@@ -1981,13 +2101,11 @@ class NamedIcon extends StatelessWidget {
             if (notificationCount > 0)
               Positioned(
                 top: 10,
-                right: notificationCount
-                    .toString()
-                    .length >= 3 ? 15 : 25,
+                right: notificationCount.toString().length >= 3 ? 15 : 25,
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration:
-                  BoxDecoration(shape: BoxShape.circle, color: Colors.red),
+                      BoxDecoration(shape: BoxShape.circle, color: Colors.red),
                   alignment: Alignment.center,
                   child: Text('$notificationCount'),
                 ),
@@ -2027,4 +2145,25 @@ class SuccessScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+typedef Validator = String? Function(String? value);
+
+Validator minMaxValidator({required int min, required int max}) {
+  return (String? value) {
+    int intValue;
+
+    try {
+      intValue = int.parse(value ?? "");
+      if (intValue < min) {
+        return "Value should not be less than $min";
+      }
+      if (intValue > max) {
+        return "Value should not be greater than $max";
+      }
+    } catch (e) {
+      return "Please enter a valid number";
+    }
+    return null; // No error
+  };
 }
