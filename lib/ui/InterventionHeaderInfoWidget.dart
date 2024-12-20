@@ -14,10 +14,12 @@ import 'package:photo_view/photo_view.dart';
 import 'package:telcabo/Tools.dart';
 import 'package:timelines/timelines.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 class InterventionHeaderInfoClientWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final demande = Tools.selectedDemande; // Retrieve selected demande from Tools
+    final demande =
+        Tools.selectedDemande; // Retrieve selected demande from Tools
 
     return Container(
       decoration: BoxDecoration(
@@ -47,7 +49,8 @@ class InterventionHeaderInfoClientWidget extends StatelessWidget {
 
             // Client Name
             Text(
-              '${demande?.consommateur ?? ""}', // Display client name or empty if null
+              '${demande?.consommateur ?? ""}',
+              // Display client name or empty if null
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 16.0,
@@ -67,12 +70,14 @@ class InterventionHeaderInfoClientWidget extends StatelessWidget {
                     // Phone Number (Tél Mobile)
                     GestureDetector(
                       onTap: () {
-                        launch("tel://${demande?.telMobile ?? ""}"); // Launch phone dialer
+                        launch(
+                            "tel://${demande?.telMobile ?? ""}"); // Launch phone dialer
                       },
                       child: InfoItemWidget(
                         icon: const FaIcon(FontAwesomeIcons.phone, size: 18),
                         title: "Tél mobile :",
-                        description: demande?.telMobile ?? "N/A", // Display phone number
+                        description: demande?.telMobile ?? "N/A",
+                        // Display phone number
                         iconEnd: const Padding(
                           padding: EdgeInsets.only(right: 5),
                           child: FaIcon(
@@ -88,12 +93,15 @@ class InterventionHeaderInfoClientWidget extends StatelessWidget {
                     // Line Number (Numéro de ligne)
                     GestureDetector(
                       onTap: () {
-                        launch("tel://${demande?.telMobile ?? ""}"); // Launch phone dialer
+                        launch(
+                            "tel://${demande?.telMobile ?? ""}"); // Launch phone dialer
                       },
                       child: InfoItemWidget(
-                        icon: const FaIcon(FontAwesomeIcons.phoneVolume, size: 18),
+                        icon: const FaIcon(FontAwesomeIcons.phoneVolume,
+                            size: 18),
                         title: "Numéro de ligne :",
-                        description: demande?.telMobile ?? "N/A", // Display line number
+                        description: demande?.telMobile ?? "N/A",
+                        // Display line number
                         iconEnd: const Padding(
                           padding: EdgeInsets.only(right: 5),
                           child: FaIcon(
@@ -116,17 +124,21 @@ class InterventionHeaderInfoClientWidget extends StatelessWidget {
 
                     // Plaque
                     InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.mapMarkerAlt, size: 18),
+                      icon:
+                          const FaIcon(FontAwesomeIcons.mapMarkerAlt, size: 18),
                       title: "Plaque :",
-                      description: demande?.plaqueName ?? "N/A", // Display plaque
+                      description:
+                          demande?.plaqueName ?? "N/A", // Display plaque
                     ),
                     const SizedBox(height: 20.0),
 
                     // Address (Adresse complément1)
                     InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.houseChimney, size: 18),
+                      icon:
+                          const FaIcon(FontAwesomeIcons.houseChimney, size: 18),
                       title: "Adresse complément1 :",
-                      description: demande?.adresseComplement1 ?? "N/A", // Display address
+                      description: demande?.adresseComplement1 ??
+                          "N/A", // Display address
                     ),
                     const SizedBox(height: 20.0),
                   ],
@@ -143,7 +155,8 @@ class InterventionHeaderInfoClientWidget extends StatelessWidget {
 class InterventionHeaderInfoProjectWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final demande = Tools.selectedDemande; // Retrieve selected demande from Tools
+    final demande =
+        Tools.selectedDemande; // Retrieve selected demande from Tools
 
     return Container(
       decoration: BoxDecoration(
@@ -172,14 +185,16 @@ class InterventionHeaderInfoProjectWidget extends StatelessWidget {
             const SizedBox(height: 12),
 
             Text(
-              'ID Commande : ${demande?.idCommande ?? ""}', // Display client name or empty if null
+              'ID Commande : ${demande?.idCommande ?? ""}',
+              // Display client name or empty if null
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 16.0,
               ),
             ),
             Text(
-              'Créé le : ${demande?.dateRdv ?? ""}', // Display client name or empty if null
+              'Créé le : ${demande?.dateRdv ?? ""}',
+              // Display client name or empty if null
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 16.0,
@@ -200,7 +215,8 @@ class InterventionHeaderInfoProjectWidget extends StatelessWidget {
                     InfoItemWidget(
                       icon: const FaIcon(FontAwesomeIcons.industry, size: 18),
                       title: "Fournisseur :",
-                      description: demande?.fournisseur ?? "N/A", // Display fournisseur
+                      description:
+                          demande?.fournisseur ?? "N/A", // Display fournisseur
                     ),
                     const SizedBox(height: 20.0),
 
@@ -216,7 +232,8 @@ class InterventionHeaderInfoProjectWidget extends StatelessWidget {
                     InfoItemWidget(
                       icon: const FaIcon(FontAwesomeIcons.users, size: 18),
                       title: "Groupe d'affectation :",
-                      description: demande?.groupeAffectation ?? "N/A", // Display Groupe d'affectation
+                      description: demande?.groupeAffectation ??
+                          "N/A", // Display Groupe d'affectation
                     ),
                     const SizedBox(height: 20.0),
 
@@ -240,7 +257,8 @@ class InterventionHeaderInfoProjectWidget extends StatelessWidget {
                     InfoItemWidget(
                       icon: const FaIcon(FontAwesomeIcons.idCard, size: 18),
                       title: "Numéro d'identification :",
-                      description: demande?.numIdentification ?? "N/A", // Display Numéro d'identification
+                      description: demande?.numIdentification ??
+                          "N/A", // Display Numéro d'identification
                     ),
                     const SizedBox(height: 20.0),
 
@@ -248,7 +266,8 @@ class InterventionHeaderInfoProjectWidget extends StatelessWidget {
                     InfoItemWidget(
                       icon: const FaIcon(FontAwesomeIcons.fileAlt, size: 18),
                       title: "Description brève :",
-                      description: demande?.description ?? "N/A", // Display Description brève
+                      description: demande?.description ??
+                          "N/A", // Display Description brève
                     ),
                     const SizedBox(height: 20.0),
                   ],
@@ -261,7 +280,6 @@ class InterventionHeaderInfoProjectWidget extends StatelessWidget {
     );
   }
 }
-
 
 class InterventionInformationWidget extends StatelessWidget {
   @override
@@ -310,7 +328,8 @@ class InterventionInformationWidget extends StatelessWidget {
                     const SizedBox(height: 15),
 
                     InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.networkWired, size: 18),
+                      icon:
+                          const FaIcon(FontAwesomeIcons.networkWired, size: 18),
                       title: "Adresse MAC :",
                       description: demande?.adresseMac ?? "",
                     ),
@@ -370,77 +389,44 @@ class ImagesModelTest {
 class InterventionHeaderImagesWidget extends StatelessWidget {
   ValueNotifier<ImagesModelTest> imageModelValueNotifer =
       ValueNotifier(ImagesModelTest(
-    "${Tools.baseUrl}/img/demandes/" + (Tools.selectedDemande?.pPassageCableApres ?? ""),
-    "Photo PBI avant l’installation",
+    "${Tools.baseUrl}/img/demandes/" +
+        (Tools.selectedDemande?.pRouteurAllume ?? ""),
+    "Routeur allumé",
   ));
 
   List<CardItem> items = [
-    ImageCarditem(
-        image: Image(
-      errorBuilder:
-          (BuildContext context, Object error, StackTrace? stackTrace) {
-        return Center(
-          child: Container(
-            child: Icon(Icons.image_not_supported_outlined),
-          ),
-        );
-      },
-      image: CachedNetworkImageProvider("${Tools.baseUrl}/img/demandes/" +
-          (Tools.selectedDemande?.pPassageCableApres ?? "")),
-    )),
-    ImageCarditem(
-        image: Image(
-      errorBuilder:
-          (BuildContext context, Object error, StackTrace? stackTrace) {
-        return Center(
-          child: Container(
-            child: Icon(Icons.image_not_supported_outlined),
-          ),
-        );
-      },
-      image: CachedNetworkImageProvider("${Tools.baseUrl}/img/demandes/" +
-          (Tools.selectedDemande?.pPassageCableApres ?? "")),
-    )),
-    ImageCarditem(
-        image: Image(
-      errorBuilder:
-          (BuildContext context, Object error, StackTrace? stackTrace) {
-        return Center(
-          child: Container(
-            child: Icon(Icons.image_not_supported_outlined),
-          ),
-        );
-      },
-      image: CachedNetworkImageProvider("${Tools.baseUrl}/img/demandes/" +
-          (Tools.selectedDemande?.pPassageCableApres ?? "")),
-    )),
-    ImageCarditem(
-        image: Image(
-      errorBuilder:
-          (BuildContext context, Object error, StackTrace? stackTrace) {
-        return Center(
-          child: Container(
-            child: Icon(Icons.image_not_supported_outlined),
-          ),
-        );
-      },
-      image: CachedNetworkImageProvider("${Tools.baseUrl}/img/demandes/" +
-          (Tools.selectedDemande?.pPassageCableApres ?? "")),
-    )),
-    ImageCarditem(
-        image: Image(
-      errorBuilder:
-          (BuildContext context, Object error, StackTrace? stackTrace) {
-        return Center(
-          child: Container(
-            child: Icon(Icons.image_not_supported_outlined),
-          ),
-        );
-      },
-      image: CachedNetworkImageProvider("${Tools.baseUrl}/img/demandes/" +
-          (Tools.selectedDemande?.pPassageCableApres ?? "")),
-    )),
-  ];
+    Tools.selectedDemande?.pRouteurAllume,
+    Tools.selectedDemande?.pTestSignalViaPm,
+    Tools.selectedDemande?.pPriseAvant,
+    Tools.selectedDemande?.pPriseApres,
+    Tools.selectedDemande?.pPassageCableAvant,
+    Tools.selectedDemande?.pPassageCableApres,
+    Tools.selectedDemande?.pCassetteRecto,
+    Tools.selectedDemande?.pCassetteVerso,
+    Tools.selectedDemande?.pSpeedTest,
+    Tools.selectedDemande?.pDosRouteurCin,
+    Tools.selectedDemande?.pNapFatBbOuvert,
+    Tools.selectedDemande?.pNapFatBbFerme,
+    Tools.selectedDemande?.pSlimboxOuvert,
+    Tools.selectedDemande?.pSlimboxFerme,
+  ]
+      .where((imagePath) =>
+          imagePath != null &&
+          imagePath.isNotEmpty) // Filter null or empty paths
+      .map((imagePath) => ImageCarditem(
+            image: Image(
+              errorBuilder:
+                  (BuildContext context, Object error, StackTrace? stackTrace) {
+                return Center(
+                  child: Icon(Icons.image_not_supported_outlined),
+                );
+              },
+              image: CachedNetworkImageProvider(
+                "${Tools.baseUrl}/img/demandes/$imagePath",
+              ),
+            ),
+          ))
+      .toList();
 
   @override
   Widget build(BuildContext context) {
@@ -602,13 +588,15 @@ class InterventionHeaderImagesWidget extends StatelessWidget {
                           case 0:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pRouteurAllume ?? ""),
+                                    (Tools.selectedDemande?.pRouteurAllume ??
+                                        ""),
                                 "Routeur allumé");
                             break;
                           case 1:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pTestSignalViaPm ?? ""),
+                                    (Tools.selectedDemande?.pTestSignalViaPm ??
+                                        ""),
                                 "Test signal via PM");
                             break;
                           case 2:
@@ -626,25 +614,31 @@ class InterventionHeaderImagesWidget extends StatelessWidget {
                           case 4:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pPassageCableAvant ?? ""),
+                                    (Tools.selectedDemande
+                                            ?.pPassageCableAvant ??
+                                        ""),
                                 "Passage câble avant");
                             break;
                           case 5:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pPassageCableApres ?? ""),
+                                    (Tools.selectedDemande
+                                            ?.pPassageCableApres ??
+                                        ""),
                                 "Passage câble après");
                             break;
                           case 6:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pCassetteRecto ?? ""),
+                                    (Tools.selectedDemande?.pCassetteRecto ??
+                                        ""),
                                 "Cassette recto");
                             break;
                           case 7:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pCassetteVerso ?? ""),
+                                    (Tools.selectedDemande?.pCassetteVerso ??
+                                        ""),
                                 "Cassette verso");
                             break;
                           case 8:
@@ -656,31 +650,36 @@ class InterventionHeaderImagesWidget extends StatelessWidget {
                           case 9:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pDosRouteurCin ?? ""),
+                                    (Tools.selectedDemande?.pDosRouteurCin ??
+                                        ""),
                                 "Dos routeur CIN");
                             break;
                           case 10:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pNapFatBbOuvert ?? ""),
+                                    (Tools.selectedDemande?.pNapFatBbOuvert ??
+                                        ""),
                                 "NAP FAT BB ouvert");
                             break;
                           case 11:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pNapFatBbFerme ?? ""),
+                                    (Tools.selectedDemande?.pNapFatBbFerme ??
+                                        ""),
                                 "NAP FAT BB fermé");
                             break;
                           case 12:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pSlimboxOuvert ?? ""),
+                                    (Tools.selectedDemande?.pSlimboxOuvert ??
+                                        ""),
                                 "Slimbox ouvert");
                             break;
                           case 13:
                             imageModelValueNotifer.value = ImagesModelTest(
                                 "${Tools.baseUrl}/img/demandes/" +
-                                    (Tools.selectedDemande?.pSlimboxFerme ?? ""),
+                                    (Tools.selectedDemande?.pSlimboxFerme ??
+                                        ""),
                                 "Slimbox fermé");
                             break;
                           default:
@@ -695,7 +694,6 @@ class InterventionHeaderImagesWidget extends StatelessWidget {
                       initialPage: 0,
                     ),
                   ),
-
                 ],
               );
             },
@@ -705,6 +703,7 @@ class InterventionHeaderImagesWidget extends StatelessWidget {
     );
   }
 }
+
 class InfoItemWidget extends StatelessWidget {
   const InfoItemWidget({
     Key? key,
@@ -767,7 +766,6 @@ class InfoItemWidget extends StatelessWidget {
     );
   }
 }
-
 
 // class MapSample extends StatelessWidget {
 //   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};

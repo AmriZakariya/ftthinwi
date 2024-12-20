@@ -50,10 +50,10 @@ class _DetailInterventionState extends State<DetailIntervention> {
                 SizedBox(
                   height: 20,
                 ),
-                InterventionInformationWidget(),
-                SizedBox(
-                  height: 20,
-                ),
+                // InterventionInformationWidget(),
+                // SizedBox(
+                //   height: 20,
+                // ),
                 InterventionHeaderImagesWidget(),
                 SizedBox(
                   height: 20,
