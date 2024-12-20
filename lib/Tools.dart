@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:googleapis_auth/auth_io.dart' as auth;
 
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:dio_logger/dio_logger.dart';
@@ -69,7 +68,8 @@ class Tools {
   }
 
   /// Unified error logging method.
-  static void _logError(String message, [dynamic error, StackTrace? stackTrace]) {
+  static void _logError(String message,
+      [dynamic error, StackTrace? stackTrace]) {
     print("[Tools:ERROR] $message");
     if (error != null) print("[Tools:ERROR] Error: $error");
     if (stackTrace != null) print("[Tools:ERROR] StackTrace: $stackTrace");
@@ -132,7 +132,9 @@ class Tools {
 
   /// Generic method to decode response data (assumes `response.data` is a JSON string).
   static dynamic _decodeResponseData(Response response, String apiName) {
-    if (response.statusCode == 200 && response.data != null && response.data.toString().isNotEmpty) {
+    if (response.statusCode == 200 &&
+        response.data != null &&
+        response.data.toString().isNotEmpty) {
       try {
         return jsonDecode(response.data);
       } catch (e) {
@@ -181,6 +183,7 @@ class Tools {
       apiName: "callWSGetEtats",
     );
   }
+
   static Future<ResponseGetFieldOptions> callWSGetFieldOptions() async {
     Dio dio = Dio()..interceptors.add(dioLoggerInterceptor);
     return _callApiWithFallback<ResponseGetFieldOptions>(
@@ -198,8 +201,6 @@ class Tools {
       apiName: "callWSGetFieldOptions",
     );
   }
-
-
 
   /// Fetches the demandes list from API or returns empty on failure.
   static Future<ResponseGetDemandesList> getDemandes() async {
@@ -245,7 +246,8 @@ class Tools {
           },
         ),
       );
-      _log("callWSSendMail: Response ${apiRespon.statusCode}, body: ${apiRespon.data}");
+      _log(
+          "callWSSendMail: Response ${apiRespon.statusCode}, body: ${apiRespon.data}");
       return (apiRespon.statusCode == 200 && apiRespon.data == "000");
     } catch (e, st) {
       _logError("callWSSendMail: Exception", e, st);
@@ -281,7 +283,6 @@ class Tools {
       _logError("writeToFileFieldOptions exception", e, st);
     }
   }
-
 
   /// Write demandes list to local file
   static void writeToFileDemandeList(Map jsonMapContent) {
@@ -322,8 +323,8 @@ class Tools {
   }
 
   /// Prepares a single image field (apply watermark if needed).
-  static Future<void> _prepareImageField(
-      Map<String, dynamic> jsonMapContent, String field, String currentDate, String currentAddress) async {
+  static Future<void> _prepareImageField(Map<String, dynamic> jsonMapContent,
+      String field, String currentDate, String currentAddress) async {
     if (jsonMapContent[field] == null ||
         jsonMapContent[field] == "null" ||
         jsonMapContent[field] == "") return;
@@ -343,8 +344,10 @@ class Tools {
           // imagePlugin.drawString(image, imagePlugin.arial_24, 0, 32, currentAddress);
 
           Directory dir = await getApplicationDocumentsDirectory();
-          File fileResultWithWatermark = File("${dir.path}/${DateTime.now().millisecondsSinceEpoch}.png");
-          fileResultWithWatermark.writeAsBytesSync(imagePlugin.encodePng(image));
+          File fileResultWithWatermark =
+              File("${dir.path}/${DateTime.now().millisecondsSinceEpoch}.png");
+          fileResultWithWatermark
+              .writeAsBytesSync(imagePlugin.encodePng(image));
           XFile xfileResult = XFile(fileResultWithWatermark.path);
 
           jsonMapContent[field] = MultipartFile.fromFileSync(
@@ -365,7 +368,8 @@ class Tools {
   }
 
   /// Calls API to add mobile data from locale.
-  static Future<bool> callWsAddMobileFromLocale(Map<String, dynamic> jsonMapContent) async {
+  static Future<bool> callWsAddMobileFromLocale(
+      Map<String, dynamic> jsonMapContent) async {
     _log("callWsAddMobileFromLocale started");
     String currentAddress;
     try {
@@ -379,25 +383,26 @@ class Tools {
 
     // List of fields that might contain images
     List<String> imageFields = [
-      "p_pbi_avant",
-      "p_pbi_apres",
-      "p_pbo_avant",
-      "p_pbo_apres",
-      "p_equipement_installe",
-      "p_test_signal",
-      "p_etiquetage_indoor",
-      "p_etiquetage_outdoor",
-      "p_passage_cable",
-      "p_fiche_instalation",
-      "p_dos_routeur",
+      "p_routeur_allume",
+      "p_test_signal_via_pm",
+      "p_prise_avant",
+      "p_prise_apres",
+      "p_passage_cable_avant",
+      "p_passage_cable_apres",
+      "p_cassette_recto",
+      "p_cassette_verso",
       "p_speed_test",
-      "photo_blocage1",
-      "photo_blocage2"
+      "p_dos_routeur_cin",
+      "p_nap_fat_bb_ouvert",
+      "p_nap_fat_bb_ferme",
+      "p_slimbox_ouvert",
+      "p_slimbox_ferme"
     ];
 
     // Prepare image fields
     for (var field in imageFields) {
-      await _prepareImageField(jsonMapContent, field, currentDate, currentAddress);
+      await _prepareImageField(
+          jsonMapContent, field, currentDate, currentAddress);
     }
 
     jsonMapContent.addAll({"isOffline": true});
@@ -418,7 +423,7 @@ class Tools {
       );
 
       _log("callWsAddMobileFromLocale: Response ${apiRespon.data}");
-      return (apiRespon.data == "000");
+      return (apiRespon.data.contains("000"));
     } catch (e, st) {
       _logError("callWsAddMobileFromLocale: Exception", e, st);
       return false;
@@ -427,10 +432,10 @@ class Tools {
 
   /// Generic file reader with JSON parsing and fallback to empty response.
   static T _readFile<T>(
-      File file,
-      T Function(Map<String, dynamic>) fromJson,
-      T emptyResponse,
-      ) {
+    File file,
+    T Function(Map<String, dynamic>) fromJson,
+    T emptyResponse,
+  ) {
     _log("Reading file: ${file.path}");
     try {
       String fileContent = file.readAsStringSync();
@@ -450,7 +455,7 @@ class Tools {
   static ResponseGetListPannes readfilePannesList() {
     return _readFile<ResponseGetListPannes>(
       filePannesList,
-          (data) => ResponseGetListPannes.fromJson(data),
+      (data) => ResponseGetListPannes.fromJson(data),
       ResponseGetListPannes(pannes: []),
     );
   }
@@ -459,31 +464,32 @@ class Tools {
   static ResponseGetListEtats readfileEtatsList() {
     return _readFile<ResponseGetListEtats>(
       fileEtatsList,
-          (data) => ResponseGetListEtats.fromJson(data),
-      ResponseGetListEtats(etats: []), // Default value if file is empty or fails
+      (data) => ResponseGetListEtats.fromJson(data),
+      ResponseGetListEtats(
+          etats: []), // Default value if file is empty or fails
     );
   }
 
   static ResponseGetFieldOptions readfileFieldOptions() {
     return _readFile<ResponseGetFieldOptions>(
       fileFieldOptions,
-          (data) => ResponseGetFieldOptions.fromJson(data as List<dynamic>),
+      (data) => ResponseGetFieldOptions.fromJson(data as List<dynamic>),
       ResponseGetFieldOptions(fieldOptions: []),
     );
   }
-
 
   /// Reads demandes list from local file.
   static ResponseGetDemandesList readfileDemandesList() {
     return _readFile<ResponseGetDemandesList>(
       fileDemandesList,
-          (data) => ResponseGetDemandesList.fromJson(data),
+      (data) => ResponseGetDemandesList.fromJson(data),
       ResponseGetDemandesList(demandes: []),
     );
   }
 
   /// Gets pannes list from either API or local cache.
-  static Future<ResponseGetListPannes> getPannesListFromLocalAndInternet() async {
+  static Future<ResponseGetListPannes>
+      getPannesListFromLocalAndInternet() async {
     _log("getPannesListFromLocalAndInternet started");
     if (await tryConnection()) {
       return callWSGetPannes();
@@ -502,7 +508,8 @@ class Tools {
     }
   }
 
-  static Future<ResponseGetFieldOptions> getFieldOptionsFromLocalAndInternet() async {
+  static Future<ResponseGetFieldOptions>
+      getFieldOptionsFromLocalAndInternet() async {
     _log("getFieldOptionsFromLocalAndInternet started");
     if (await tryConnection()) {
       return callWSGetFieldOptions();
@@ -521,7 +528,8 @@ class Tools {
     }
     try {
       final response = await InternetAddress.lookup('www.google.com');
-      bool hasConnection = response.isNotEmpty && response[0].rawAddress.isNotEmpty;
+      bool hasConnection =
+          response.isNotEmpty && response[0].rawAddress.isNotEmpty;
       _log("tryConnection: $hasConnection");
       return hasConnection;
     } on SocketException catch (e) {
@@ -531,7 +539,8 @@ class Tools {
   }
 
   /// Gets demandes list from either API or local cache.
-  static Future<ResponseGetDemandesList> getListDemandeFromLocalAndINternet() async {
+  static Future<ResponseGetDemandesList>
+      getListDemandeFromLocalAndINternet() async {
     _log("getListDemandeFromLocalAndINternet started");
     if (await tryConnection()) {
       return getDemandes();
@@ -539,6 +548,7 @@ class Tools {
       return readfileDemandesList();
     }
   }
+
   static Future<bool> callWsLogin(Map<String, dynamic> formDateValues) async {
     _log("callWsLogin started");
 
@@ -604,7 +614,8 @@ class Tools {
     }
 
     if (permission == LocationPermission.deniedForever) {
-      return Future.error('Les autorisations de localisation sont définitivement refusées.');
+      return Future.error(
+          'Les autorisations de localisation sont définitivement refusées.');
     }
 
     return await Geolocator.getCurrentPosition();
@@ -613,7 +624,8 @@ class Tools {
   /// Refreshes the selected demande from API and updates the local cache.
   static Future<bool> refreshSelectedDemande() async {
     _log("refreshSelectedDemande started");
-    FormData formData = FormData.fromMap({"demande_id": selectedDemande?.id ?? ""});
+    FormData formData =
+        FormData.fromMap({"demande_id": selectedDemande?.id ?? ""});
     try {
       Dio dio = Dio()..interceptors.add(dioLoggerInterceptor);
       Response apiRespon = await dio.post(
@@ -630,13 +642,16 @@ class Tools {
 
       var decoded = _decodeResponseData(apiRespon, "refreshSelectedDemande");
       if (decoded != null) {
-        ResponseGetDemandesList demandesList = ResponseGetDemandesList.fromJson(decoded);
+        ResponseGetDemandesList demandesList =
+            ResponseGetDemandesList.fromJson(decoded);
         selectedDemande = demandesList.demandes?.first;
 
         int? selectedIndex = demandesListSaved?.demandes
             ?.indexWhere((element) => element.id == selectedDemande?.id);
 
-        if (selectedIndex != null && selectedIndex >= 0 && selectedDemande != null) {
+        if (selectedIndex != null &&
+            selectedIndex >= 0 &&
+            selectedDemande != null) {
           demandesListSaved?.demandes?[selectedIndex] = selectedDemande!;
         }
         return true;
@@ -665,10 +680,13 @@ class Tools {
   static Future<String> getAddressFromLatLng() async {
     _log("getAddressFromLatLng started");
     Position position = await determinePosition();
-    String coordinateString = "( latitude = ${position.latitude} longitude = ${position.longitude} )";
-    List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+    String coordinateString =
+        "( latitude = ${position.latitude} longitude = ${position.longitude} )";
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
     Placemark place = placemarks[0];
-    String fullAddress = " ${place.locality}, ${place.postalCode}, ${place.country}";
+    String fullAddress =
+        " ${place.locality}, ${place.postalCode}, ${place.country}";
     return "$coordinateString $fullAddress";
   }
 
@@ -696,7 +714,8 @@ class Tools {
         return;
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       // `googleAuth.aLiscessToken` and `googleAuth.idToken` can be sent to your backend
       // to verify and create a session. You can also integrate these tokens with
@@ -708,12 +727,10 @@ class Tools {
       print("ID Token: ${googleAuth.idToken}");
 
       // You can store user info or navigate to a new screen after successful sign-in.
-
     } catch (error) {
       print("Google sign-in failed: $error");
     }
   }
-
 
   static Future<String?> getAccessTokenFromServiceAccount() async {
     final jsonStr = await rootBundle.loadString('assets/service-account.json');
@@ -726,7 +743,8 @@ class Tools {
     );
 
     final scopes = ['https://www.googleapis.com/auth/cloud-platform'];
-    final client = await auth.clientViaServiceAccount(serviceAccountCredentials, scopes);
+    final client =
+        await auth.clientViaServiceAccount(serviceAccountCredentials, scopes);
     final token = client.credentials.accessToken.data;
     client.close();
 

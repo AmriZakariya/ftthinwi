@@ -593,6 +593,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         dropdown: etatProvisioningDropDown,
         key: 'etat_provisioning',
       );
+
+      updateInputsFromDemande();
+      updateValidatorFromDemande();
+
       emitLoaded();
     } catch (e) {
       print(e);
@@ -635,150 +639,111 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   }
 
   Future<String> callWsAddMobile(Map<String, dynamic> formDateValues) async {
-    print("****** callWsAddMobile ***");
+    print("[INFO] callWsAddMobile invoked");
 
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-
-    if (Tools.localWatermark == true) {
-      print("Local watermark start ");
-      for (var mapKey in formDateValues.keys) {
-        print("mapKey ==> $mapKey");
-        if (mapKey == "p_routeur_allume" ||
-            mapKey == "p_test_signal_via_pm" ||
-            mapKey == "p_prise_avant" ||
-            mapKey == "p_prise_apres" ||
-            mapKey == "p_passage_cable_avant" ||
-            mapKey == "p_passage_cable_apres" ||
-            mapKey == "p_cassette_recto" ||
-            mapKey == "p_cassette_verso" ||
-            mapKey == "p_speed_test" ||
-            mapKey == "p_dos_routeur_cin" ||
-            mapKey == "p_nap_fat_bb_ouvert" ||
-            mapKey == "p_nap_fat_bb_ferme" ||
-            mapKey == "p_slimbox_ouvert" ||
-            mapKey == "p_slimbox_ferme") {
-          try {
-            if (formDateValues[mapKey] != null) {
-              var xfileSrc;
-
-              if (mapKey == "p_routeur_allume") {
-                xfileSrc = routeurAllumeInputFieldBloc.value;
-              } else if (mapKey == "p_test_signal_via_pm") {
-                xfileSrc = testSignalViaPmInputFieldBloc.value;
-              } else if (mapKey == "p_prise_avant") {
-                xfileSrc = priseAvantInputFieldBloc.value;
-              } else if (mapKey == "p_prise_apres") {
-                xfileSrc = priseApresInputFieldBloc.value;
-              } else if (mapKey == "p_passage_cable_avant") {
-                xfileSrc = passageCableAvantInputFieldBloc.value;
-              } else if (mapKey == "p_passage_cable_apres") {
-                xfileSrc = passageCableApresInputFieldBloc.value;
-              } else if (mapKey == "p_cassette_recto") {
-                xfileSrc = cassetteRectoInputFieldBloc.value;
-              } else if (mapKey == "p_cassette_verso") {
-                xfileSrc = cassetteVersoInputFieldBloc.value;
-              } else if (mapKey == "p_speed_test") {
-                xfileSrc = speedTestInputFieldBloc.value;
-              } else if (mapKey == "p_dos_routeur_cin") {
-                xfileSrc = dosRouteurCinInputFieldBloc.value;
-              } else if (mapKey == "p_nap_fat_bb_ouvert") {
-                xfileSrc = napFatBbOuvertInputFieldBloc.value;
-              } else if (mapKey == "p_nap_fat_bb_ferme") {
-                xfileSrc = napFatBbFermeInputFieldBloc.value;
-              } else if (mapKey == "p_slimbox_ouvert") {
-                xfileSrc = slimboxOuvertInputFieldBloc.value;
-              } else if (mapKey == "p_slimbox_ferme") {
-                xfileSrc = slimboxFermeInputFieldBloc.value;
-              }
-
-              final File fileResult = File(xfileSrc?.path ?? "");
-
-              final image =
-              imagePLugin.decodeImage(fileResult.readAsBytesSync())!;
-
-              File fileResultWithWatermark =
-              File(dir.path + "/" + fileName + '.png');
-              fileResultWithWatermark
-                  .writeAsBytesSync(imagePLugin.encodePng(image));
-
-              XFile xfileResult = XFile(fileResultWithWatermark.path);
-
-              formDateValues[mapKey] = MultipartFile.fromFileSync(
-                  xfileResult.path,
-                  filename: xfileResult.name);
-
-              print("watermark success");
-            }
-          } catch (e) {
-            print("+++ exception ++++ mapKey ==> $mapKey");
-            print(e);
-            formDateValues[mapKey] = null;
-          }
-        }
-      }
+    if (Tools.localWatermark) {
+      print("[INFO] Applying local watermark to images...");
+      await applyLocalWatermark(formDateValues);
+    } else {
+      print("[INFO] Skipping local watermark application");
     }
 
     FormData formData = FormData.fromMap(formDateValues);
-    print(formData);
+    print("[INFO] Form data prepared for submission");
 
-    Response apiRespon;
     try {
-      print("**************doPOST***********");
-      Dio dio = new Dio();
-      dio.interceptors.add(CustomInterceptor());
-      dio.interceptors.add(dioLoggerInterceptor);
+      print("[INFO] Sending POST request to /traitements/add_mobile");
+      Dio dio = Dio()
+        ..interceptors.add(CustomInterceptor())
+        ..interceptors.add(dioLoggerInterceptor);
 
-      apiRespon = await dio.post("${Tools.baseUrl}/traitements/add_mobile",
-          data: formData,
-          options: Options(
-            followRedirects: true,
-            method: "POST",
-            headers: {
-              'Content-Type': 'multipart/form-data;charset=UTF-8',
-              'Charset': 'utf-8',
-              'Accept': 'application/json',
-            },
-          ));
+      final apiResponse = await dio.post(
+        "${Tools.baseUrl}/traitements/add_mobile",
+        data: formData,
+        options: Options(
+          followRedirects: true,
+          method: "POST",
+          headers: {
+            'Content-Type': 'multipart/form-data;charset=UTF-8',
+            'Charset': 'utf-8',
+            'Accept': 'application/json',
+          },
+        ),
+      );
 
-      print("Image Upload ${apiRespon}");
+      print("[SUCCESS] API Response: ${apiResponse.data}");
 
-      print(apiRespon);
-
-      if (apiRespon.data == "000") {
+      if (apiResponse.data.contains("000")) {
+        print("[INFO] API response contains success code '000'");
         return "000";
       }
-
-      // if (apiRespon.statusCode == 201) {
-      //   apiRespon.statusCode == 201;
-      //
-      //   return true ;
-      // } else {
-      //   print('errr');
-      // }
-    } on DioError catch (e) {
-      print("**************DioError***********");
-      print(e);
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx and is also not 304.
-      if (e.response != null) {
-        print(e.response);
-        // print(e.response.headers);
-        // print(e.response.);
-        //           print("**->REQUEST ${e.response?.re.uri}#${Transformer.urlEncodeMap(e.response?.request.data)} ");
-        // throw (e.response?.statusMessage ?? "");
-      } else {
-        // Something happened in setting up or sending the request that triggered an Error
-        //        print(e.request);
-        print(e.message);
-      }
+    } on DioError catch (dioError) {
+      print("[ERROR] DioError: ${dioError.response ?? dioError.message}");
+      return "Erreur de connexion au serveur";
     } catch (e) {
-      // throw ('API ERROR');
-      print("API ERROR ${e}");
+      print("[ERROR] Unexpected error: $e");
       return "Erreur de connexion au serveur";
     }
 
+    print("[INFO] Returning default error response");
     return "Erreur de connexion au serveur";
   }
+
+  Future<void> applyLocalWatermark(Map<String, dynamic> formDateValues) async {
+    final inputFieldMap = {
+      "p_routeur_allume": routeurAllumeInputFieldBloc,
+      "p_test_signal_via_pm": testSignalViaPmInputFieldBloc,
+      "p_prise_avant": priseAvantInputFieldBloc,
+      "p_prise_apres": priseApresInputFieldBloc,
+      "p_passage_cable_avant": passageCableAvantInputFieldBloc,
+      "p_passage_cable_apres": passageCableApresInputFieldBloc,
+      "p_cassette_recto": cassetteRectoInputFieldBloc,
+      "p_cassette_verso": cassetteVersoInputFieldBloc,
+      "p_speed_test": speedTestInputFieldBloc,
+      "p_dos_routeur_cin": dosRouteurCinInputFieldBloc,
+      "p_nap_fat_bb_ouvert": napFatBbOuvertInputFieldBloc,
+      "p_nap_fat_bb_ferme": napFatBbFermeInputFieldBloc,
+      "p_slimbox_ouvert": slimboxOuvertInputFieldBloc,
+      "p_slimbox_ferme": slimboxFermeInputFieldBloc,
+    };
+
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+
+    for (var mapKey in formDateValues.keys) {
+      if (inputFieldMap.containsKey(mapKey)) {
+        try {
+          if (formDateValues[mapKey] != null) {
+            var xfileSrc = inputFieldMap[mapKey]?.value;
+
+            if (xfileSrc != null) {
+              final fileResult = File(xfileSrc.path ?? "");
+              final image = imagePLugin.decodeImage(fileResult.readAsBytesSync());
+
+              if (image != null) {
+                final fileResultWithWatermark = File('${dir.path}/$fileName.png');
+                fileResultWithWatermark.writeAsBytesSync(imagePLugin.encodePng(image));
+
+                XFile xfileResult = XFile(fileResultWithWatermark.path);
+
+                formDateValues[mapKey] = MultipartFile.fromFileSync(
+                  xfileResult.path,
+                  filename: xfileResult.name,
+                );
+
+                print("[SUCCESS] Watermark applied for $mapKey");
+              }
+            }
+          }
+        } catch (e) {
+          print("[ERROR] Exception while processing $mapKey: $e");
+          formDateValues[mapKey] = null;
+        }
+      } else {
+        print("[INFO] Skipping watermark for $mapKey as it is not in the allowed keys");
+      }
+    }
+  }
+
 
   @override
   void onSubmitting() async {
@@ -864,17 +829,18 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
   void updateInputsFromDemande() async {
     try {
-      // Update validators if necessary
-      updateValidatorFromDemande();
-
       // Update text fields
       cableFibreTextField.updateValue(Tools.selectedDemande?.cableFibre ?? "");
       numFatTextField.updateValue(Tools.selectedDemande?.numFat ?? "");
-      numSplitterTextField.updateValue(Tools.selectedDemande?.numSplitter ?? "");
+      numSplitterTextField
+          .updateValue(Tools.selectedDemande?.numSplitter ?? "");
       numSlimboxTextField.updateValue(Tools.selectedDemande?.numSlimbox ?? "");
-      speedUploadTextField.updateValue(Tools.selectedDemande?.speedUpload ?? "");
-      speedDownloadTextField.updateValue(Tools.selectedDemande?.speedDownload ?? "");
-      commentaireTextField.updateValue(Tools.selectedDemande?.commentaire ?? "");
+      speedUploadTextField
+          .updateValue(Tools.selectedDemande?.speedUpload ?? "");
+      speedDownloadTextField
+          .updateValue(Tools.selectedDemande?.speedDownload ?? "");
+      commentaireTextField
+          .updateValue(Tools.selectedDemande?.commentaire ?? "");
       latitudeTextField.updateValue(Tools.selectedDemande?.latitude ?? "");
       longintudeTextField.updateValue(Tools.selectedDemande?.longitude ?? "");
       adresseMacTextField.updateValue(Tools.selectedDemande?.adresseMac ?? "");
@@ -885,7 +851,8 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       var responseGetListEtats = await Tools.getEtatsListFromLocalAndInternet();
       etatsDropDown.updateItems(responseGetListEtats.etats ?? []);
 
-      var responseGetFieldOptions = await Tools.getFieldOptionsFromLocalAndInternet();
+      var responseGetFieldOptions =
+          await Tools.getFieldOptionsFromLocalAndInternet();
 
       // Update dropdowns dynamically
       updateDropdownItemsData(
@@ -919,24 +886,13 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         selectedId: Tools.selectedDemande?.etatProvisioningId,
       );
 
-      // Update file fields
-      // routeurAllumeInputFieldBloc.updateValue(Tools.selectedDemande?.routeurAllumeFile);
-      // testSignalViaPmInputFieldBloc.updateValue(Tools.selectedDemande?.testSignalViaPmFile);
-      // priseAvantInputFieldBloc.updateValue(Tools.selectedDemande?.priseAvantFile);
-      // priseApresInputFieldBloc.updateValue(Tools.selectedDemande?.priseApresFile);
-      // passageCableAvantInputFieldBloc.updateValue(Tools.selectedDemande?.passageCableAvantFile);
-      // passageCableApresInputFieldBloc.updateValue(Tools.selectedDemande?.passageCableApresFile);
-      // cassetteRectoInputFieldBloc.updateValue(Tools.selectedDemande?.cassetteRectoFile);
-      // cassetteVersoInputFieldBloc.updateValue(Tools.selectedDemande?.cassetteVersoFile);
-      // speedTestInputFieldBloc.updateValue(Tools.selectedDemande?.speedTestFile);
-      // dosRouteurCinInputFieldBloc.updateValue(Tools.selectedDemande?.dosRouteurCinFile);
-      // napFatBbOuvertInputFieldBloc.updateValue(Tools.selectedDemande?.napFatBbOuvertFile);
-      // napFatBbFermeInputFieldBloc.updateValue(Tools.selectedDemande?.napFatBbFermeFile);
-      // slimboxOuvertInputFieldBloc.updateValue(Tools.selectedDemande?.slimboxOuvertFile);
-      // slimboxFermeInputFieldBloc.updateValue(Tools.selectedDemande?.slimboxFermeFile);
-
       // Update date field
-      // dateRdvInputFieldBLoc.updateValue(Tools.selectedDemande?.dateRdv);
+      String? selectedRdvDate = Tools.selectedDemande?.dateRdv;
+      if (selectedRdvDate?.isNotEmpty == true) {
+        print("selected rdvDate ==> ${selectedRdvDate}");
+        var parsedDate = DateTime.parse(selectedRdvDate!);
+        dateRdvInputFieldBLoc.updateValue(parsedDate);
+      }
     } catch (e) {
       print(e);
       // Handle error (e.g., display error message or fallback behavior)
@@ -951,7 +907,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   }) {
     // Find the field option group by key
     var fieldOptionGroup = fieldOptionGroups.firstWhere(
-          (group) => group.key == key,
+      (group) => group.key == key,
       orElse: () => FieldOptionGroup(key: key, label: '', options: []),
     );
 
@@ -961,37 +917,94 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     // Update the selected value if a matching ID exists
     if (selectedId != null) {
       var selectedOption = fieldOptionGroup.options.firstWhere(
-            (option) => option.id == selectedId,
+        (option) => option.id == selectedId,
       );
       dropdown.updateValue(selectedOption);
     }
   }
 
-
-
   void updateValidatorFromDemande() {
-    //   if (Tools.selectedDemande?.pPbiAvant?.isNotEmpty == true) {
-    //     print("removeValidators pPbiAvantTextField");
-    //     photoProblemeInputFieldBloc.removeValidators([
-    //       FieldBlocValidators.required,
-    //     ]);
-    //   } else {
-    //     print("addValidators pPbiAvantTextField");
-    //
-    //     photoProblemeInputFieldBloc.addValidators([
-    //       FieldBlocValidators.required,
-    //     ]);
-    //   }
-    //
-    //   if (Tools.selectedDemande?.pPbiApres?.isNotEmpty == true) {
-    //     photoSignalInputFieldBloc.removeValidators([
-    //       FieldBlocValidators.required,
-    //     ]);
-    //   } else {
-    //     photoSignalInputFieldBloc.addValidators([
-    //       FieldBlocValidators.required,
-    //     ]);
-    //   }
+    final validatorMappings = {
+      routeurAllumeInputFieldBloc: Tools.selectedDemande?.pRouteurAllume,
+      testSignalViaPmInputFieldBloc: Tools.selectedDemande?.pTestSignalViaPm,
+      priseAvantInputFieldBloc: Tools.selectedDemande?.pPriseAvant,
+      priseApresInputFieldBloc: Tools.selectedDemande?.pPriseApres,
+      passageCableAvantInputFieldBloc:
+          Tools.selectedDemande?.pPassageCableAvant,
+      passageCableApresInputFieldBloc:
+          Tools.selectedDemande?.pPassageCableApres,
+      cassetteRectoInputFieldBloc: Tools.selectedDemande?.pCassetteRecto,
+      cassetteVersoInputFieldBloc: Tools.selectedDemande?.pCassetteVerso,
+      speedTestInputFieldBloc: Tools.selectedDemande?.pSpeedTest,
+      dosRouteurCinInputFieldBloc: Tools.selectedDemande?.pDosRouteurCin,
+      napFatBbOuvertInputFieldBloc: Tools.selectedDemande?.pNapFatBbOuvert,
+      napFatBbFermeInputFieldBloc: Tools.selectedDemande?.pNapFatBbFerme,
+      slimboxOuvertInputFieldBloc: Tools.selectedDemande?.pSlimboxOuvert,
+      slimboxFermeInputFieldBloc: Tools.selectedDemande?.pSlimboxFerme,
+      cableFibreTextField: Tools.selectedDemande?.cableFibre,
+      numFatTextField: Tools.selectedDemande?.numFat,
+      numSplitterTextField: Tools.selectedDemande?.numSplitter,
+      numSlimboxTextField: Tools.selectedDemande?.numSlimbox,
+      speedUploadTextField: Tools.selectedDemande?.speedUpload,
+      speedDownloadTextField: Tools.selectedDemande?.speedDownload,
+      commentaireTextField: Tools.selectedDemande?.commentaire,
+      latitudeTextField: Tools.selectedDemande?.latitude,
+      longintudeTextField: Tools.selectedDemande?.longitude,
+      adresseMacTextField: Tools.selectedDemande?.adresseMac,
+      snRouteurTextField: Tools.selectedDemande?.snRouteur,
+      refRouteurTextField: Tools.selectedDemande?.refRouteur,
+    };
+
+    validatorMappings.forEach((fieldBloc, value) {
+      if (fieldBloc is TextFieldBloc) {
+        if (value?.isNotEmpty == true) {
+          print("Removing validators for field: ${fieldBloc.name}");
+          (fieldBloc).removeValidators([FieldBlocValidators.required]);
+        } else {
+          print("Adding validators for field: ${fieldBloc.name}");
+          fieldBloc.addValidators([FieldBlocValidators.required]);
+        }
+      } else if (fieldBloc is InputFieldBloc) {
+        if (value?.isNotEmpty == true) {
+          print("Removing validators for field: ${fieldBloc.name}");
+          (fieldBloc).removeValidators([FieldBlocValidators.required]);
+        } else {
+          print("Adding validators for field: ${fieldBloc.name}");
+          fieldBloc.addValidators([FieldBlocValidators.required]);
+        }
+      }
+    });
+
+    // Handle dropdown-specific validations
+    final dropdownMappings = {
+      etatsDropDown: Tools.selectedDemande?.etatId,
+      sousEtatsDropDown: Tools.selectedDemande?.subStatutId,
+      offreDropDown: Tools.selectedDemande?.offreId,
+      articleDropDown: Tools.selectedDemande?.articleId,
+      boiteTypeDropDown: Tools.selectedDemande?.boiteTypeId,
+      positionDropDown: Tools.selectedDemande?.positionId,
+      etatProvisioningDropDown: Tools.selectedDemande?.etatProvisioningId,
+    };
+
+    dropdownMappings.forEach((dropdownBloc, selectedId) {
+      if (selectedId != null) {
+        print("Removing validators for dropdown: ${dropdownBloc.name}");
+        dropdownBloc.removeValidators([FieldBlocValidators.required]);
+      } else {
+        print("Adding validators for dropdown: ${dropdownBloc.name}");
+        dropdownBloc.addValidators([FieldBlocValidators.required]);
+      }
+        });
+
+    // Handle date field validation
+    if (Tools.selectedDemande?.dateRdv?.isNotEmpty == true) {
+      print(
+          "Removing validators for date field: ${dateRdvInputFieldBLoc.name}");
+      dateRdvInputFieldBLoc.removeValidators([FieldBlocValidators.required]);
+    } else {
+      print("Adding validators for date field: ${dateRdvInputFieldBLoc.name}");
+      dateRdvInputFieldBLoc.addValidators([FieldBlocValidators.required]);
+    }
   }
 }
 
@@ -1368,7 +1381,8 @@ class _InterventionFormState extends State<InterventionForm>
                                         child: ElevatedButton(
                                           onPressed: () async {
                                             print("Submit button clicked");
-                                            formBloc.submit(); // Submit the form
+                                            formBloc
+                                                .submit(); // Submit the form
                                           },
                                           child: const Text(
                                             'Enregistrer',
@@ -1380,12 +1394,19 @@ class _InterventionFormState extends State<InterventionForm>
                                             ),
                                           ),
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: Theme.of(context).primaryColor, // Button color
-                                            foregroundColor: Colors.white, // Text color
-                                            padding: const EdgeInsets.symmetric(vertical: 16.0),
-                                            minimumSize: const Size(280, 50), // Button size
+                                            backgroundColor:
+                                                Theme.of(context).primaryColor,
+                                            // Button color
+                                            foregroundColor: Colors.white,
+                                            // Text color
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 16.0),
+                                            minimumSize: const Size(280, 50),
+                                            // Button size
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(30.0), // Rounded edges
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      30.0), // Rounded edges
                                             ),
                                           ),
                                         ),
@@ -1393,7 +1414,8 @@ class _InterventionFormState extends State<InterventionForm>
                                     ),
                                   ],
                                 ),
-                                if (!formBloc.state.isFirstStep && !formBloc.state.isLastStep)
+                                if (!formBloc.state.isFirstStep &&
+                                    !formBloc.state.isLastStep)
                                   const SizedBox(
                                     height: 50,
                                   ),
@@ -1759,165 +1781,165 @@ class _InterventionFormState extends State<InterventionForm>
           buildSizedDivider(),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.routeurAllumeInputFieldBloc,
-                      labelText: "Routeur allumé :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.testSignalViaPmInputFieldBloc,
-                      labelText: "Test signal via PM :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.routeurAllumeInputFieldBloc,
+                  labelText: "Routeur allumé :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.testSignalViaPmInputFieldBloc,
+                  labelText: "Test signal via PM :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.priseAvantInputFieldBloc,
-                      labelText: "Prise avant :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.priseApresInputFieldBloc,
-                      labelText: "Prise après :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.priseAvantInputFieldBloc,
+                  labelText: "Prise avant :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.priseApresInputFieldBloc,
+                  labelText: "Prise après :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.passageCableAvantInputFieldBloc,
-                      labelText: "Passage câble avant :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.passageCableApresInputFieldBloc,
-                      labelText: "Passage câble après :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.passageCableAvantInputFieldBloc,
+                  labelText: "Passage câble avant :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.passageCableApresInputFieldBloc,
+                  labelText: "Passage câble après :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.cassetteRectoInputFieldBloc,
-                      labelText: "Cassette recto :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.cassetteVersoInputFieldBloc,
-                      labelText: "Cassette verso :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.cassetteRectoInputFieldBloc,
+                  labelText: "Cassette recto :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.cassetteVersoInputFieldBloc,
+                  labelText: "Cassette verso :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.speedTestInputFieldBloc,
-                      labelText: "Speed test :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.dosRouteurCinInputFieldBloc,
-                      labelText: "Dos routeur CIN :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.speedTestInputFieldBloc,
+                  labelText: "Speed test :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.dosRouteurCinInputFieldBloc,
+                  labelText: "Dos routeur CIN :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.napFatBbOuvertInputFieldBloc,
-                      labelText: "NAP FAT BB ouvert :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.napFatBbFermeInputFieldBloc,
-                      labelText: "NAP FAT BB fermé :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.napFatBbOuvertInputFieldBloc,
+                  labelText: "NAP FAT BB ouvert :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.napFatBbFermeInputFieldBloc,
+                  labelText: "NAP FAT BB fermé :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.slimboxOuvertInputFieldBloc,
-                      labelText: "Slimbox ouvert :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.slimboxFermeInputFieldBloc,
-                      labelText: "Slimbox fermé :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.slimboxOuvertInputFieldBloc,
+                  labelText: "Slimbox ouvert :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.slimboxFermeInputFieldBloc,
+                  labelText: "Slimbox fermé :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           buildSizedDivider(),
           TextFieldBlocBuilder(
             textFieldBloc: formBloc.commentaireTextField,

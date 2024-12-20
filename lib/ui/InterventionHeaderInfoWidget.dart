@@ -17,36 +17,44 @@ import 'package:url_launcher/url_launcher.dart';
 class InterventionHeaderInfoClientWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final demande = Tools.selectedDemande;
+    final demande = Tools.selectedDemande; // Retrieve selected demande from Tools
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black),
-        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black), // Add border to the container
+        borderRadius: BorderRadius.circular(20), // Round the corners
       ),
       child: Center(
         child: Column(
           children: [
             const SizedBox(height: 15.0),
+
+            // Profile Icon Button
             ElevatedButton(
-              onPressed: () async {},
+              onPressed: () async {
+                // Define behavior when the profile button is clicked
+              },
               style: ElevatedButton.styleFrom(
-                shape: const CircleBorder(),
+                shape: const CircleBorder(), // Make the button circular
                 padding: const EdgeInsets.all(10),
               ),
               child: const Icon(
                 Icons.person,
-                size: 40,
+                size: 40, // Large profile icon
               ),
             ),
             const SizedBox(height: 12),
+
+            // Client Name
             Text(
-              'Client : ${demande?.consommateur ?? ""}',
+              '${demande?.consommateur ?? ""}', // Display client name or empty if null
               style: const TextStyle(
                 color: Colors.black,
                 fontSize: 16.0,
               ),
             ),
+
+            // Expandable Information Section
             ExpandChild(
               child: Padding(
                 padding: const EdgeInsets.all(15.0),
@@ -56,32 +64,69 @@ class InterventionHeaderInfoClientWidget extends StatelessWidget {
                     const Divider(color: Colors.black, height: 2),
                     const SizedBox(height: 15),
 
-                    // Téléphone
+                    // Phone Number (Tél Mobile)
                     GestureDetector(
                       onTap: () {
-                        launch("tel://${demande?.telMobile ?? ""}");
+                        launch("tel://${demande?.telMobile ?? ""}"); // Launch phone dialer
                       },
                       child: InfoItemWidget(
                         icon: const FaIcon(FontAwesomeIcons.phone, size: 18),
-                        title: "Téléphone :",
-                        description: demande?.telMobile ?? "",
+                        title: "Tél mobile :",
+                        description: demande?.telMobile ?? "N/A", // Display phone number
                         iconEnd: const Padding(
                           padding: EdgeInsets.only(right: 5),
                           child: FaIcon(
                             FontAwesomeIcons.phoneVolume,
                             size: 22,
-                            color: Colors.green,
+                            color: Colors.green, // Green icon for action
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 20.0),
 
-                    // Adresse
+                    // Line Number (Numéro de ligne)
+                    GestureDetector(
+                      onTap: () {
+                        launch("tel://${demande?.telMobile ?? ""}"); // Launch phone dialer
+                      },
+                      child: InfoItemWidget(
+                        icon: const FaIcon(FontAwesomeIcons.phoneVolume, size: 18),
+                        title: "Numéro de ligne :",
+                        description: demande?.telMobile ?? "N/A", // Display line number
+                        iconEnd: const Padding(
+                          padding: EdgeInsets.only(right: 5),
+                          child: FaIcon(
+                            FontAwesomeIcons.phoneVolume,
+                            size: 22,
+                            color: Colors.green, // Green icon for action
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20.0),
+
+                    // City (Ville)
+                    InfoItemWidget(
+                      icon: const FaIcon(FontAwesomeIcons.city, size: 18),
+                      title: "Ville :",
+                      description: demande?.adresseMac ?? "N/A", // Display city
+                    ),
+                    const SizedBox(height: 20.0),
+
+                    // Plaque
+                    InfoItemWidget(
+                      icon: const FaIcon(FontAwesomeIcons.mapMarkerAlt, size: 18),
+                      title: "Plaque :",
+                      description: demande?.plaqueName ?? "N/A", // Display plaque
+                    ),
+                    const SizedBox(height: 20.0),
+
+                    // Address (Adresse complément1)
                     InfoItemWidget(
                       icon: const FaIcon(FontAwesomeIcons.houseChimney, size: 18),
-                      title: "Adresse :",
-                      description: demande?.adresseComplement1 ?? "",
+                      title: "Adresse complément1 :",
+                      description: demande?.adresseComplement1 ?? "N/A", // Display address
                     ),
                     const SizedBox(height: 20.0),
                   ],
@@ -98,39 +143,50 @@ class InterventionHeaderInfoClientWidget extends StatelessWidget {
 class InterventionHeaderInfoProjectWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final demande = Tools.selectedDemande;
+    final demande = Tools.selectedDemande; // Retrieve selected demande from Tools
 
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black),
-        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black), // Add border to the container
+        borderRadius: BorderRadius.circular(20), // Round the corners
       ),
       child: Center(
         child: Column(
           children: [
             const SizedBox(height: 15.0),
+
+            // Profile Icon Button
             ElevatedButton(
-              onPressed: () async {},
+              onPressed: () async {
+                // Define behavior when the profile button is clicked
+              },
               style: ElevatedButton.styleFrom(
-                shape: const CircleBorder(),
+                shape: const CircleBorder(), // Make the button circular
                 padding: const EdgeInsets.all(10),
               ),
               child: const Icon(
-                Icons.receipt,
-                size: 40,
+                Icons.list,
+                size: 40, // Large profile icon
               ),
             ),
             const SizedBox(height: 12),
-            Center(
-              child: Text(
-                'Case Id : ${demande?.parent ?? ""}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 16.0,
-                ),
+
+            Text(
+              'ID Commande : ${demande?.idCommande ?? ""}', // Display client name or empty if null
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 16.0,
               ),
             ),
+            Text(
+              'Créé le : ${demande?.dateRdv ?? ""}', // Display client name or empty if null
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 16.0,
+              ),
+            ),
+
+            // Expandable Information Section
             ExpandChild(
               child: Padding(
                 padding: const EdgeInsets.all(15.0),
@@ -140,76 +196,61 @@ class InterventionHeaderInfoProjectWidget extends StatelessWidget {
                     const Divider(color: Colors.black, height: 2),
                     const SizedBox(height: 15),
 
-                    // Type demande
+                    // Fournisseur
                     InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.tag, size: 18),
-                      title: "Type demande :",
-                      description: demande?.type ?? "",
+                      icon: const FaIcon(FontAwesomeIcons.industry, size: 18),
+                      title: "Fournisseur :",
+                      description: demande?.fournisseur ?? "N/A", // Display fournisseur
                     ),
                     const SizedBox(height: 20.0),
 
-                    // Equipement
+                    // FTTH SN
                     InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.box, size: 18),
-                      title: "Equipement (SN Routeur) :",
-                      description: demande?.snRouteur ?? "",
+                      icon: const FaIcon(FontAwesomeIcons.wifi, size: 18),
+                      title: "FTTH SN :",
+                      description: demande?.ftthSn ?? "N/A", // Display FTTH SN
                     ),
                     const SizedBox(height: 20.0),
 
-                    // Situation abonnement (mapped to fournisseur)
+                    // Groupe d'affectation
                     InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.toggleOn, size: 18),
-                      title: "Situation abonnement :",
-                      description: demande?.fournisseur ?? "",
+                      icon: const FaIcon(FontAwesomeIcons.users, size: 18),
+                      title: "Groupe d'affectation :",
+                      description: demande?.groupeAffectation ?? "N/A", // Display Groupe d'affectation
                     ),
                     const SizedBox(height: 20.0),
 
-                    // Nom plan tarifaire (mapped to offreId)
+                    // Numéro
                     InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.moneyBill, size: 18),
-                      title: "Offre (Plan tarifaire) :",
-                      description: demande?.offreId ?? "",
+                      icon: const FaIcon(FontAwesomeIcons.hashtag, size: 18),
+                      title: "Numéro :",
+                      description: demande?.numero ?? "N/A", // Display Numéro
                     ),
                     const SizedBox(height: 20.0),
 
-                    // Verification cablage pto (mapped to pTestSignalViaPm)
+                    // Parent
                     InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.check, size: 18),
-                      title: "Test signal (PTO) :",
-                      description: demande?.pTestSignalViaPm ?? "",
+                      icon: const FaIcon(FontAwesomeIcons.sitemap, size: 18),
+                      title: "Parent :",
+                      description: demande?.parent ?? "N/A", // Display Parent
                     ),
                     const SizedBox(height: 20.0),
 
-                    // Internet (mapped to pSpeedTest)
+                    // Numéro d'identification
                     InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.exclamationTriangle, size: 18),
-                      title: "Internet (Speed Test) :",
-                      description: demande?.pSpeedTest ?? "",
+                      icon: const FaIcon(FontAwesomeIcons.idCard, size: 18),
+                      title: "Numéro d'identification :",
+                      description: demande?.numIdentification ?? "N/A", // Display Numéro d'identification
                     ),
                     const SizedBox(height: 20.0),
 
-                    // Power (mapped to pRouteurAllume)
+                    // Description brève
                     InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.powerOff, size: 18),
-                      title: "Power (Routeur allumé) :",
-                      description: demande?.pRouteurAllume ?? "",
+                      icon: const FaIcon(FontAwesomeIcons.fileAlt, size: 18),
+                      title: "Description brève :",
+                      description: demande?.description ?? "N/A", // Display Description brève
                     ),
                     const SizedBox(height: 20.0),
-
-                    // PON (mapped to ftthSn as a reference)
-                    InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.plug, size: 18),
-                      title: "FTTH SN (PON ref) :",
-                      description: demande?.ftthSn ?? "",
-                    ),
-                    const SizedBox(height: 20.0),
-
-                    // Cablage redemarrage equipement (mapped to pPassageCableAvant)
-                    InfoItemWidget(
-                      icon: const FaIcon(FontAwesomeIcons.cableCar, size: 18),
-                      title: "Câblage (Avant) :",
-                      description: demande?.pPassageCableAvant ?? "",
-                    ),
                   ],
                 ),
               ),
@@ -220,6 +261,7 @@ class InterventionHeaderInfoProjectWidget extends StatelessWidget {
     );
   }
 }
+
 
 class InterventionInformationWidget extends StatelessWidget {
   @override
@@ -552,46 +594,107 @@ class InterventionHeaderImagesWidget extends StatelessWidget {
                     ),
                   ),
                   Center(
-                      child: HorizontalCardPager(
-                    onPageChanged: (page) {
-                      print("page : $page");
+                    child: HorizontalCardPager(
+                      onPageChanged: (page) {
+                        print("page : $page");
 
-                      if (page == 0) {
-                        imageModelValueNotifer.value = ImagesModelTest(
-                            "${Tools.baseUrl}/img/demandes/" +
-                                (Tools.selectedDemande?.pPassageCableApres ?? ""),
-                            "Photo problème");
-                      } else if (page == 1) {
-                        imageModelValueNotifer.value = ImagesModelTest(
-                            "${Tools.baseUrl}/img/demandes/" +
-                                (Tools.selectedDemande?.pPassageCableApres ?? ""),
-                            "Photo signal");
-                      }
-                      if (page == 2) {
-                        imageModelValueNotifer.value = ImagesModelTest(
-                            "${Tools.baseUrl}/img/demandes/" +
-                                (Tools.selectedDemande?.pPassageCableApres ?? ""),
-                            "Photo de resolution de probleme");
-                      }
-                      if (page == 3) {
-                        imageModelValueNotifer.value = ImagesModelTest(
-                            "${Tools.baseUrl}/img/demandes/" +
-                                (Tools.selectedDemande?.pPassageCableApres ?? ""),
-                            "Photo supplémentaire 1");
-                      }
-                      if (page == 4) {
-                        imageModelValueNotifer.value = ImagesModelTest(
-                            "${Tools.baseUrl}/img/demandes/" +
-                                (Tools.selectedDemande?.pPassageCableApres ?? ""),
-                            "Photo supplémentaire 2");
-                      }
-                    },
-                    onSelectedItem: (page) {
-                      print("onSelectedItem : $page");
-                    },
-                    items: items,
-                    initialPage: 0,
-                  )),
+                        switch (page) {
+                          case 0:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pRouteurAllume ?? ""),
+                                "Routeur allumé");
+                            break;
+                          case 1:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pTestSignalViaPm ?? ""),
+                                "Test signal via PM");
+                            break;
+                          case 2:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pPriseAvant ?? ""),
+                                "Prise avant");
+                            break;
+                          case 3:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pPriseApres ?? ""),
+                                "Prise après");
+                            break;
+                          case 4:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pPassageCableAvant ?? ""),
+                                "Passage câble avant");
+                            break;
+                          case 5:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pPassageCableApres ?? ""),
+                                "Passage câble après");
+                            break;
+                          case 6:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pCassetteRecto ?? ""),
+                                "Cassette recto");
+                            break;
+                          case 7:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pCassetteVerso ?? ""),
+                                "Cassette verso");
+                            break;
+                          case 8:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pSpeedTest ?? ""),
+                                "Speed test");
+                            break;
+                          case 9:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pDosRouteurCin ?? ""),
+                                "Dos routeur CIN");
+                            break;
+                          case 10:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pNapFatBbOuvert ?? ""),
+                                "NAP FAT BB ouvert");
+                            break;
+                          case 11:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pNapFatBbFerme ?? ""),
+                                "NAP FAT BB fermé");
+                            break;
+                          case 12:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pSlimboxOuvert ?? ""),
+                                "Slimbox ouvert");
+                            break;
+                          case 13:
+                            imageModelValueNotifer.value = ImagesModelTest(
+                                "${Tools.baseUrl}/img/demandes/" +
+                                    (Tools.selectedDemande?.pSlimboxFerme ?? ""),
+                                "Slimbox fermé");
+                            break;
+                          default:
+                            print("Unknown page: $page");
+                            break;
+                        }
+                      },
+                      onSelectedItem: (page) {
+                        print("onSelectedItem : $page");
+                      },
+                      items: items,
+                      initialPage: 0,
+                    ),
+                  ),
 
                 ],
               );

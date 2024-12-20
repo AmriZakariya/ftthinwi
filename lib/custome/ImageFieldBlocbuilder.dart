@@ -372,17 +372,26 @@ class _ImageFieldBlocBuilderState extends State<ImageFieldBlocBuilder> {
 
   String getImagePickerExistImageUrl() {
     String imageUrl = "${Tools.baseUrl}/img/demandes/";
-    // if (widget.fileFieldBloc.name == "photo_probleme") {
-    //   imageUrl += Tools.selectedDemande?.photoProbleme ?? "";
-    // }else if (widget.fileFieldBloc.name == "photo_signal") {
-    //   imageUrl += Tools.selectedDemande?.photoSignal ?? "";
-    // }else if (widget.fileFieldBloc.name == "photo_resolution_probleme") {
-    //   imageUrl += Tools.selectedDemande?.photoResolutionProbleme ?? "";
-    // }else if (widget.fileFieldBloc.name == "photo_sup1") {
-    //   imageUrl += Tools.selectedDemande?.photoSup1 ?? "";
-    // }else if (widget.fileFieldBloc.name == "photo_sup2") {
-    //   imageUrl += Tools.selectedDemande?.photoSup2 ?? "";
-    // }
+
+    final imageMappings = {
+      "p_routeur_allume": Tools.selectedDemande?.pRouteurAllume ?? "",
+      "p_test_signal_via_pm": Tools.selectedDemande?.pTestSignalViaPm ?? "",
+      "p_prise_avant": Tools.selectedDemande?.pPriseAvant ?? "",
+      "p_prise_apres": Tools.selectedDemande?.pPriseApres ?? "",
+      "p_passage_cable_avant": Tools.selectedDemande?.pPassageCableAvant ?? "",
+      "p_passage_cable_apres": Tools.selectedDemande?.pPassageCableApres ?? "",
+      "p_cassette_recto": Tools.selectedDemande?.pCassetteRecto ?? "",
+      "p_cassette_verso": Tools.selectedDemande?.pCassetteVerso ?? "",
+      "p_speed_test": Tools.selectedDemande?.pSpeedTest ?? "",
+      "p_dos_routeur_cin": Tools.selectedDemande?.pDosRouteurCin ?? "",
+      "p_nap_fat_bb_ouvert": Tools.selectedDemande?.pNapFatBbOuvert ?? "",
+      "p_nap_fat_bb_ferme": Tools.selectedDemande?.pNapFatBbFerme ?? "",
+      "p_slimbox_ouvert": Tools.selectedDemande?.pSlimboxOuvert ?? "",
+      "p_slimbox_ferme": Tools.selectedDemande?.pSlimboxFerme ?? "",
+    };
+
+    // Append the corresponding value based on the fileFieldBloc name
+    imageUrl += imageMappings[widget.fileFieldBloc.name] ?? "";
 
     return imageUrl;
   }
