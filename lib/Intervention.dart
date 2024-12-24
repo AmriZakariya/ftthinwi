@@ -23,6 +23,7 @@ import 'package:telcabo/ToolsExtra.dart';
 import 'package:telcabo/custome/ConnectivityCheckBlocBuilder.dart';
 import 'package:telcabo/custome/ImageFieldBlocbuilder.dart';
 import 'package:telcabo/custome/QrScannerTextFieldBlocBuilder.dart';
+import 'package:telcabo/custome/SignatureFieldBlocBuilder.dart';
 import 'package:telcabo/models/response_get_list_field_options.dart';
 import 'package:telcabo/models/response_get_liste_etats.dart';
 import 'package:telcabo/models/response_get_liste_pannes.dart';
@@ -342,6 +343,19 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     ],
     toJson: (value) {
       MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
+          filename: "Traitement[${value?.name}]");
+      return file;
+    },
+  );
+
+  final InputFieldBloc<XFile?, Object> signatureInputFieldBloc = InputFieldBloc(
+    initialValue: null,
+    name: "Traitement[signature]",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) {
+      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
           filename: value?.name ?? "");
       return file;
     },
@@ -433,7 +447,8 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         napFatBbOuvertInputFieldBloc,
         napFatBbFermeInputFieldBloc,
         slimboxOuvertInputFieldBloc,
-        slimboxFermeInputFieldBloc
+        slimboxFermeInputFieldBloc,
+        signatureInputFieldBloc
       ],
     );
 
@@ -468,49 +483,28 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     print("Writing to writeToFileTraitementList!");
 
     try {
+      final fieldBlocMapping = {
+        "p_routeur_allume": routeurAllumeInputFieldBloc,
+        "p_test_signal_via_pm": testSignalViaPmInputFieldBloc,
+        "p_prise_avant": priseAvantInputFieldBloc,
+        "p_prise_apres": priseApresInputFieldBloc,
+        "p_passage_cable_avant": passageCableAvantInputFieldBloc,
+        "p_passage_cable_apres": passageCableApresInputFieldBloc,
+        "p_cassette_recto": cassetteRectoInputFieldBloc,
+        "p_cassette_verso": cassetteVersoInputFieldBloc,
+        "p_speed_test": speedTestInputFieldBloc,
+        "p_dos_routeur_cin": dosRouteurCinInputFieldBloc,
+        "p_nap_fat_bb_ouvert": napFatBbOuvertInputFieldBloc,
+        "p_nap_fat_bb_ferme": napFatBbFermeInputFieldBloc,
+        "p_slimbox_ouvert": slimboxOuvertInputFieldBloc,
+        "p_slimbox_ferme": slimboxFermeInputFieldBloc,
+      };
+
       for (var mapKey in jsonMapContent.keys) {
-        if (mapKey == "p_routeur_allume") {
+        final fieldBloc = fieldBlocMapping[mapKey];
+        if (fieldBloc != null) {
           jsonMapContent[mapKey] =
-              "${routeurAllumeInputFieldBloc.value?.path};;${routeurAllumeInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_test_signal_via_pm") {
-          jsonMapContent[mapKey] =
-              "${testSignalViaPmInputFieldBloc.value?.path};;${testSignalViaPmInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_prise_avant") {
-          jsonMapContent[mapKey] =
-              "${priseAvantInputFieldBloc.value?.path};;${priseAvantInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_prise_apres") {
-          jsonMapContent[mapKey] =
-              "${priseApresInputFieldBloc.value?.path};;${priseApresInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_passage_cable_avant") {
-          jsonMapContent[mapKey] =
-              "${passageCableAvantInputFieldBloc.value?.path};;${passageCableAvantInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_passage_cable_apres") {
-          jsonMapContent[mapKey] =
-              "${passageCableApresInputFieldBloc.value?.path};;${passageCableApresInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_cassette_recto") {
-          jsonMapContent[mapKey] =
-              "${cassetteRectoInputFieldBloc.value?.path};;${cassetteRectoInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_cassette_verso") {
-          jsonMapContent[mapKey] =
-              "${cassetteVersoInputFieldBloc.value?.path};;${cassetteVersoInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_speed_test") {
-          jsonMapContent[mapKey] =
-              "${speedTestInputFieldBloc.value?.path};;${speedTestInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_dos_routeur_cin") {
-          jsonMapContent[mapKey] =
-              "${dosRouteurCinInputFieldBloc.value?.path};;${dosRouteurCinInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_nap_fat_bb_ouvert") {
-          jsonMapContent[mapKey] =
-              "${napFatBbOuvertInputFieldBloc.value?.path};;${napFatBbOuvertInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_nap_fat_bb_ferme") {
-          jsonMapContent[mapKey] =
-              "${napFatBbFermeInputFieldBloc.value?.path};;${napFatBbFermeInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_slimbox_ouvert") {
-          jsonMapContent[mapKey] =
-              "${slimboxOuvertInputFieldBloc.value?.path};;${slimboxOuvertInputFieldBloc.value?.name}";
-        } else if (mapKey == "p_slimbox_ferme") {
-          jsonMapContent[mapKey] =
-              "${slimboxFermeInputFieldBloc.value?.path};;${slimboxFermeInputFieldBloc.value?.name}";
+          "${fieldBloc.value?.path};;${fieldBloc.value?.name}";
         }
       }
 
@@ -717,11 +711,14 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
             if (xfileSrc != null) {
               final fileResult = File(xfileSrc.path ?? "");
-              final image = imagePLugin.decodeImage(fileResult.readAsBytesSync());
+              final image =
+                  imagePLugin.decodeImage(fileResult.readAsBytesSync());
 
               if (image != null) {
-                final fileResultWithWatermark = File('${dir.path}/$fileName.png');
-                fileResultWithWatermark.writeAsBytesSync(imagePLugin.encodePng(image));
+                final fileResultWithWatermark =
+                    File('${dir.path}/$fileName.png');
+                fileResultWithWatermark
+                    .writeAsBytesSync(imagePLugin.encodePng(image));
 
                 XFile xfileResult = XFile(fileResultWithWatermark.path);
 
@@ -739,11 +736,11 @@ class InterventionFormBLoc extends FormBloc<String, String> {
           formDateValues[mapKey] = null;
         }
       } else {
-        print("[INFO] Skipping watermark for $mapKey as it is not in the allowed keys");
+        print(
+            "[INFO] Skipping watermark for $mapKey as it is not in the allowed keys");
       }
     }
   }
-
 
   @override
   void onSubmitting() async {
@@ -994,7 +991,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         print("Adding validators for dropdown: ${dropdownBloc.name}");
         dropdownBloc.addValidators([FieldBlocValidators.required]);
       }
-        });
+    });
 
     // Handle date field validation
     if (Tools.selectedDemande?.dateRdv?.isNotEmpty == true) {
@@ -1951,6 +1948,13 @@ class _InterventionFormState extends State<InterventionForm>
               prefixIcon: Icon(Icons.comment),
             ),
           ),
+          buildSizedDivider(),
+          SignatureFieldBlocBuilder(
+            signatureFieldBloc: formBloc.signatureInputFieldBloc,
+            formBloc: formBloc,
+            labelText: "Signature :",
+          ),
+          buildSizedDivider(),
         ],
       ),
     );

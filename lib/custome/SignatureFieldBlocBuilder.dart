@@ -39,12 +39,15 @@ class _SignatureFieldBlocBuilderState extends State<SignatureFieldBlocBuilder> {
       final ui.Image? image = await _controller.toImage();
       if (image == null) return null;
 
-      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData =
+      await image.toByteData(format: ui.ImageByteFormat.png);
       if (byteData == null) return null;
 
       final Uint8List pngBytes = byteData.buffer.asUint8List();
       final tempDir = await getTemporaryDirectory();
-      final signaturePath = '${tempDir.path}/signature.png';
+
+      // Generate a unique file name
+      final signaturePath = '${tempDir.path}/signature_${DateTime.now().millisecondsSinceEpoch}.png';
 
       // Save the image as an XFile
       final File signatureFile = File(signaturePath);
@@ -56,6 +59,7 @@ class _SignatureFieldBlocBuilderState extends State<SignatureFieldBlocBuilder> {
       return null;
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -78,25 +82,27 @@ class _SignatureFieldBlocBuilderState extends State<SignatureFieldBlocBuilder> {
                 backgroundColor: Colors.white,
               ),
             ),
-            const SizedBox(height: 10),
             Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                ElevatedButton(
+                TextButton.icon(
                   onPressed: () async {
                     final signatureFile = await _saveSignature();
                     if (signatureFile != null) {
                       widget.signatureFieldBloc.updateValue(signatureFile);
                     }
                   },
-                  child: const Text("Save Signature"),
+                  icon: const Icon(Icons.check, size: 18),
+                  label: const Text("Valider", style: TextStyle(fontSize: 14)),
                 ),
                 const SizedBox(width: 10),
-                ElevatedButton(
+                TextButton.icon(
                   onPressed: () {
                     _controller.clear();
                     widget.signatureFieldBloc.updateValue(null);
                   },
-                  child: const Text("Clear"),
+                  icon: const Icon(Icons.clear, size: 18),
+                  label: const Text("Effacer", style: TextStyle(fontSize: 14)),
                 ),
               ],
             ),
