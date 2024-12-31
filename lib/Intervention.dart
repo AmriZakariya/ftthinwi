@@ -504,7 +504,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         final fieldBloc = fieldBlocMapping[mapKey];
         if (fieldBloc != null) {
           jsonMapContent[mapKey] =
-          "${fieldBloc.value?.path};;${fieldBloc.value?.name}";
+              "${fieldBloc.value?.path};;${fieldBloc.value?.name}";
         }
       }
 
@@ -957,17 +957,11 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         if (value?.isNotEmpty == true) {
           print("Removing validators for field: ${fieldBloc.name}");
           (fieldBloc).removeValidators([FieldBlocValidators.required]);
-        } else {
-          print("Adding validators for field: ${fieldBloc.name}");
-          fieldBloc.addValidators([FieldBlocValidators.required]);
         }
       } else if (fieldBloc is InputFieldBloc) {
         if (value?.isNotEmpty == true) {
           print("Removing validators for field: ${fieldBloc.name}");
           (fieldBloc).removeValidators([FieldBlocValidators.required]);
-        } else {
-          print("Adding validators for field: ${fieldBloc.name}");
-          fieldBloc.addValidators([FieldBlocValidators.required]);
         }
       }
     });
@@ -987,9 +981,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       if (selectedId != null) {
         print("Removing validators for dropdown: ${dropdownBloc.name}");
         dropdownBloc.removeValidators([FieldBlocValidators.required]);
-      } else {
-        print("Adding validators for dropdown: ${dropdownBloc.name}");
-        dropdownBloc.addValidators([FieldBlocValidators.required]);
       }
     });
 
@@ -998,9 +989,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       print(
           "Removing validators for date field: ${dateRdvInputFieldBLoc.name}");
       dateRdvInputFieldBLoc.removeValidators([FieldBlocValidators.required]);
-    } else {
-      print("Adding validators for date field: ${dateRdvInputFieldBLoc.name}");
-      dateRdvInputFieldBLoc.addValidators([FieldBlocValidators.required]);
     }
   }
 }
