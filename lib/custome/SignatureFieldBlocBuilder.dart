@@ -115,7 +115,7 @@ class _SignatureFieldBlocBuilderState extends State<SignatureFieldBlocBuilder> {
                   fit: BoxFit.contain,
                 ),
               ),
-            if (fieldBlocState.hasError)
+            if (fieldBlocState.canShowError)
               Padding(
                 padding: const EdgeInsets.only(top: 5),
                 child: Text(
