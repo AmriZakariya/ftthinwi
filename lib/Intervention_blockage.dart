@@ -29,14 +29,15 @@ import 'package:telcabo/models/response_get_liste_etats.dart';
 import 'package:telcabo/models/response_get_liste_pannes.dart';
 import 'package:telcabo/ui/InterventionHeaderInfoWidget.dart';
 import 'package:telcabo/ui/LoadingDialog.dart';
-import 'package:timelines/timelines.dart';
+import 'package:timelines_plus/timelines_plus.dart';
+
+import 'Intervention.dart';
 
 final GlobalKey<ScaffoldState> formStepperScaffoldKey =
-    new GlobalKey<ScaffoldState>();
+new GlobalKey<ScaffoldState>();
 
-ValueNotifier<int> currentStepValueNotifier = ValueNotifier(Tools.currentStep);
 
-class InterventionFormBLoc extends FormBloc<String, String> {
+class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   // late final ResponseGetListEtat responseListEtat;
   // late final ResponseGetListType responseGetListType;
   late final ResponseGetListEtats responseGetListEtats;
@@ -47,7 +48,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
   /* Form Fields */
 
-  final MotifDuBlocageDropDown = SelectFieldBloc<Etat, dynamic>(
+  final motifDuBlocageDropDown = SelectFieldBloc<FieldOption, dynamic>(
     name: "Blockage[sub_statut_id]",
     validators: [
       FieldBlocValidators.required,
@@ -76,12 +77,36 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     ],
   );
 
+  final gcTradeBooleanFieldBloc = BooleanFieldBloc(
+    name: 'Blockage[gc_trad]',
+    initialValue: false,
+  );
+  final gcExisteBooleanFieldBloc = BooleanFieldBloc(
+    name: 'Blockage[gc_existe]',
+    initialValue: false,
+  );
+  final gcBooleanFieldBloc = BooleanFieldBloc(
+    name: 'Blockage[gc]',
+    initialValue: false,
+  );
+  final bPrBooleanFieldBloc = BooleanFieldBloc(
+    name: 'Blockage[b_pr]',
+    initialValue: false,
+  );
+  final paBooleanFieldBloc = BooleanFieldBloc(
+    name: 'Blockage[pa]',
+    initialValue: false,
+  );
+  final fixationBooleanFieldBloc = BooleanFieldBloc(
+    name: 'Blockage[fixation]',
+    initialValue: false,
+  );
 
 
-  final InputFieldBloc<XFile?, Object> routeurAllumeInputFieldBloc =
-      InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> pTraceAvant_1_inputFieldBloc =
+  InputFieldBloc(
     initialValue: null,
-    name: "p_routeur_allume",
+    name: "Blockage[p_trace_avant_1]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -92,10 +117,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> testSignalViaPmInputFieldBloc =
-      InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> pTraceAvant_2_inputFieldBloc =
+  InputFieldBloc(
     initialValue: null,
-    name: "p_test_signal_via_pm",
+    name: "Blockage[p_trace_avant_2]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -106,10 +131,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> priseAvantInputFieldBloc =
-      InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> pTraceAvant_3_inputFieldBloc =
+  InputFieldBloc(
     initialValue: null,
-    name: "p_prise_avant",
+    name: "Blockage[p_trace_avant_3]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -120,10 +145,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> priseApresInputFieldBloc =
-      InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> pTraceAvant_4_inputFieldBloc =
+  InputFieldBloc(
     initialValue: null,
-    name: "p_prise_apres",
+    name: "Blockage[p_trace_avant_4]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -134,10 +159,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> passageCableAvantInputFieldBloc =
-      InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> pTraceApres_1_InputFieldBloc =
+  InputFieldBloc(
     initialValue: null,
-    name: "p_passage_cable_avant",
+    name: "Blockage[p_trace_apres_1]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -148,10 +173,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> passageCableApresInputFieldBloc =
-      InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> pTraceApres_2_InputFieldBloc =
+  InputFieldBloc(
     initialValue: null,
-    name: "p_passage_cable_apres",
+    name: "Blockage[p_trace_apres_2]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -162,10 +187,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> cassetteRectoInputFieldBloc =
-      InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> pTraceApres_3_InputFieldBloc =
+  InputFieldBloc(
     initialValue: null,
-    name: "p_cassette_recto",
+    name: "Blockage[p_trace_apres_3]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -176,10 +201,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> cassetteVersoInputFieldBloc =
-      InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> pTraceApres_4_InputFieldBloc =
+  InputFieldBloc(
     initialValue: null,
-    name: "p_cassette_verso",
+    name: "Blockage[p_trace_apres_4]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -190,9 +215,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> speedTestInputFieldBloc = InputFieldBloc(
+  final InputFieldBloc<XFile?,
+      Object> pPositionPlan_1_InputFieldBloc = InputFieldBloc(
     initialValue: null,
-    name: "p_speed_test",
+    name: "Blockage[p_position_plan_1]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -203,79 +229,23 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?, Object> dosRouteurCinInputFieldBloc =
-      InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> pPositionPlan_2_FieldBloc =
+  InputFieldBloc(
     initialValue: null,
-    name: "p_dos_routeur_cin",
+    name: "Blockage[p_position_plan_2]",
     validators: [
       FieldBlocValidators.required,
     ],
     toJson: (value) {
       MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
           filename: value?.name ?? "");
-      return file;
-    },
-  );
-
-  final InputFieldBloc<XFile?, Object> napFatBbOuvertInputFieldBloc =
-      InputFieldBloc(
-    initialValue: null,
-    name: "p_nap_fat_bb_ouvert",
-    validators: [
-      FieldBlocValidators.required,
-    ],
-    toJson: (value) {
-      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
-          filename: value?.name ?? "");
-      return file;
-    },
-  );
-
-  final InputFieldBloc<XFile?, Object> napFatBbFermeInputFieldBloc =
-      InputFieldBloc(
-    initialValue: null,
-    name: "p_nap_fat_bb_ferme",
-    validators: [
-      FieldBlocValidators.required,
-    ],
-    toJson: (value) {
-      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
-          filename: value?.name ?? "");
-      return file;
-    },
-  );
-
-  final InputFieldBloc<XFile?, Object> slimboxOuvertInputFieldBloc =
-      InputFieldBloc(
-    initialValue: null,
-    name: "p_slimbox_ouvert",
-    validators: [
-      FieldBlocValidators.required,
-    ],
-    toJson: (value) {
-      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
-          filename: value?.name ?? "");
-      return file;
-    },
-  );
-
-  final InputFieldBloc<XFile?, Object> slimboxFermeInputFieldBloc =
-      InputFieldBloc(
-    initialValue: null,
-    name: "p_slimbox_ferme",
-    validators: [
-      FieldBlocValidators.required,
-    ],
-    toJson: (value) {
-      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
-          filename: "Traitement[${value?.name}]");
       return file;
     },
   );
 
   final InputFieldBloc<XFile?, Object> signatureInputFieldBloc = InputFieldBloc(
     initialValue: null,
-    name: "Traitement[signature]",
+    name: "Blockage[signature]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -286,54 +256,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final latitudeTextField = TextFieldBloc(
-    name: 'Traitement[latitude]',
-    validators: [
-      FieldBlocValidators.required,
-    ],
-  );
-
-  final longintudeTextField = TextFieldBloc(
-    name: 'Traitement[longitude]',
-    validators: [
-      FieldBlocValidators.required,
-    ],
-  );
-  final adresseMacTextField = TextFieldBloc(
-    name: 'Traitement[adresse_mac]',
-    validators: [
-      FieldBlocValidators.required,
-    ],
-  );
-
-  final snRouteurTextField = TextFieldBloc(
-    name: 'Traitement[sn_routeur]',
-    validators: [
-      FieldBlocValidators.required,
-    ],
-  );
-
-  final refRouteurTextField = TextFieldBloc(
-    name: 'Traitement[ref_routeur]',
-    validators: [
-      FieldBlocValidators.required,
-    ],
-  );
-
-  final dateRdvInputFieldBLoc = InputFieldBloc<DateTime?, Object>(
-    initialValue: null,
-    name: "date_rdv",
-    validators: [
-      FieldBlocValidators.required,
-    ],
-    toJson: (value) {
-      final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:s');
-      final String formatted = formatter.format(value ?? DateTime.now());
-      return formatted;
-    },
-  );
-
-  InterventionFormBLoc() : super(isLoading: true) {
+  InterventionBlockageFormBLoc() : super(isLoading: true) {
     Tools.currentStep = (Tools.selectedDemande?.etape ?? 1) - 1;
 
     print("Tools.currentStep ==> ${Tools.currentStep}");
@@ -342,135 +265,34 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     addFieldBlocs(
       step: 0,
       fieldBlocs: [
-        MotifDuBlocageDropDown,
-        offreDropDown,
-        articleDropDown,
-        boiteTypeDropDown,
-        positionDropDown,
-        latitudeTextField,
+        motifDuBlocageDropDown,
         cableFibreTextField,
-        numFatTextField,
-        numSplitterTextField,
-        speedUploadTextField,
-        speedDownloadTextField,
-        longintudeTextField,
-        commentaireTextField,
-        adresseMacTextField,
-        snRouteurTextField,
-        refRouteurTextField,
-        dateRdvInputFieldBLoc,
-        routeurAllumeInputFieldBloc,
-        testSignalViaPmInputFieldBloc,
-        priseAvantInputFieldBloc,
-        priseApresInputFieldBloc,
-        passageCableAvantInputFieldBloc,
-        passageCableApresInputFieldBloc,
-        cassetteRectoInputFieldBloc,
-        cassetteVersoInputFieldBloc,
-        speedTestInputFieldBloc,
-        dosRouteurCinInputFieldBloc,
-        napFatBbOuvertInputFieldBloc,
-        napFatBbFermeInputFieldBloc,
-        slimboxOuvertInputFieldBloc,
-        slimboxFermeInputFieldBloc,
+        boitierTextField,
+        tubeTextField,
+        gcTradeBooleanFieldBloc,
+        gcExisteBooleanFieldBloc,
+        gcBooleanFieldBloc,
+        bPrBooleanFieldBloc,
+        paBooleanFieldBloc,
+        fixationBooleanFieldBloc,
+        pTraceAvant_1_inputFieldBloc,
+        pTraceAvant_2_inputFieldBloc,
+        pTraceAvant_3_inputFieldBloc,
+        pTraceAvant_4_inputFieldBloc,
+        pTraceApres_1_InputFieldBloc,
+        pTraceApres_2_InputFieldBloc,
+        pTraceApres_3_InputFieldBloc,
+        pTraceApres_4_InputFieldBloc,
+        pPositionPlan_1_InputFieldBloc,
+        pPositionPlan_2_FieldBloc,
         signatureInputFieldBloc
       ],
     );
-
-    MotifDuBlocageDropDown.onValueChanges(
-      onData: (previous, current) async* {
-        var selectedEtat = current.value;
-        print("selectedEtat id ==> ${selectedEtat?.id}");
-        if (selectedEtat?.id == null) {
-          return;
-        }
-
-        removeFieldBlocs(
-            fieldBlocs: [sousEtatsDropDown, etatProvisioningDropDown]);
-
-        if (selectedEtat?.id == "8") {
-          addFieldBloc(fieldBloc: etatProvisioningDropDown);
-        }
-
-        // chek if null or empty sub list
-        if (selectedEtat?.sousEtats == null ||
-            selectedEtat?.sousEtats?.isEmpty == true) {
-          return;
-        }
-
-        sousEtatsDropDown.updateItems(selectedEtat?.sousEtats ?? []);
-        addFieldBloc(fieldBloc: sousEtatsDropDown);
-      },
-    );
-  }
-
-  bool writeToFileTraitementList(Map jsonMapContent) {
-    print("Writing to writeToFileTraitementList!");
-
-    try {
-      final fieldBlocMapping = {
-        "p_routeur_allume": routeurAllumeInputFieldBloc,
-        "p_test_signal_via_pm": testSignalViaPmInputFieldBloc,
-        "p_prise_avant": priseAvantInputFieldBloc,
-        "p_prise_apres": priseApresInputFieldBloc,
-        "p_passage_cable_avant": passageCableAvantInputFieldBloc,
-        "p_passage_cable_apres": passageCableApresInputFieldBloc,
-        "p_cassette_recto": cassetteRectoInputFieldBloc,
-        "p_cassette_verso": cassetteVersoInputFieldBloc,
-        "p_speed_test": speedTestInputFieldBloc,
-        "p_dos_routeur_cin": dosRouteurCinInputFieldBloc,
-        "p_nap_fat_bb_ouvert": napFatBbOuvertInputFieldBloc,
-        "p_nap_fat_bb_ferme": napFatBbFermeInputFieldBloc,
-        "p_slimbox_ouvert": slimboxOuvertInputFieldBloc,
-        "p_slimbox_ferme": slimboxFermeInputFieldBloc,
-      };
-
-      for (var mapKey in jsonMapContent.keys) {
-        final fieldBloc = fieldBlocMapping[mapKey];
-        if (fieldBloc != null) {
-          jsonMapContent[mapKey] =
-              "${fieldBloc.value?.path};;${fieldBloc.value?.name}";
-        }
-      }
-
-      String fileContent = fileTraitementList.readAsStringSync();
-      print("file content ==> ${fileContent}");
-
-      if (fileContent.isEmpty) {
-        print("empty file");
-
-        Map emptyMap = {"traitementList": []};
-
-        fileTraitementList.writeAsStringSync(json.encode(emptyMap));
-
-        fileContent = fileTraitementList.readAsStringSync();
-      }
-
-      Map traitementListMap = json.decode(fileContent);
-
-      print("file content decode ==> ${traitementListMap}");
-
-      List traitementList = traitementListMap["traitementList"];
-
-      traitementList.add(json.encode(jsonMapContent));
-
-      traitementListMap["traitementList"] = traitementList;
-
-      fileTraitementList.writeAsStringSync(json.encode(traitementListMap));
-
-      return true;
-    } catch (e) {
-      print("exeption -- " + e.toString());
-    }
-
-    return false;
   }
 
   @override
   void onLoading() async {
-    emitFailure(failureResponse: "loadingTest");
     Tools.initFiles();
-
     getApplicationDocumentsDirectory().then((Directory directory) {
       dir = directory;
       fileTraitementList = new File(dir.path + "/fileTraitementList.json");
@@ -479,43 +301,14 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         fileTraitementList.createSync();
       }
     });
-
     try {
-      responseGetListEtats = await Tools.getEtatsListFromLocalAndInternet();
-      MotifDuBlocageDropDown.updateItems(responseGetListEtats.etats ?? []);
-
-      responseGetFieldOptions =
-          await Tools.getFieldOptionsFromLocalAndInternet();
+      responseGetFieldOptions = await Tools.getFieldOptionsFromLocalAndInternet();
       // Update dropdowns
       updateDropdownItems(
         fieldOptions: responseGetFieldOptions.fieldOptions,
-        dropdown: offreDropDown,
-        key: 'offre',
+        dropdown: motifDuBlocageDropDown,
+        key: 'substatut',
       );
-      updateDropdownItems(
-        fieldOptions: responseGetFieldOptions.fieldOptions,
-        dropdown: articleDropDown,
-        key: 'article',
-      );
-      updateDropdownItems(
-        fieldOptions: responseGetFieldOptions.fieldOptions,
-        dropdown: boiteTypeDropDown,
-        key: 'boite_type',
-      );
-      updateDropdownItems(
-        fieldOptions: responseGetFieldOptions.fieldOptions,
-        dropdown: positionDropDown,
-        key: 'position',
-      );
-      updateDropdownItems(
-        fieldOptions: responseGetFieldOptions.fieldOptions,
-        dropdown: etatProvisioningDropDown,
-        key: 'etat_provisioning',
-      );
-
-      updateInputsFromDemande();
-      updateValidatorFromDemande();
-
       emitLoaded();
     } catch (e) {
       print(e);
@@ -538,8 +331,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     print("override updateCurrentStep");
     print("Tools.currentStep ==> ${Tools.currentStep}");
 
-    clearInputs();
-
     currentStepValueNotifier.value = Tools.currentStep;
 
     super.updateCurrentStep(step);
@@ -551,8 +342,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     print("Tools.currentStep ==> ${Tools.currentStep}");
 
     currentStepValueNotifier.value = Tools.currentStep;
-
-    clearInputs();
 
     super.previousStep();
   }
@@ -571,13 +360,13 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     print("[INFO] Form data prepared for submission");
 
     try {
-      print("[INFO] Sending POST request to /traitements/add_mobile");
+      print("[INFO] Sending POST request to /traitements/blockage_mobile");
       Dio dio = Dio()
         ..interceptors.add(CustomInterceptor())
         ..interceptors.add(dioLoggerInterceptor);
 
       final apiResponse = await dio.post(
-        "${Tools.baseUrl}/traitements/add_mobile",
+        "${Tools.baseUrl}/traitements/blockage_mobile",
         data: formData,
         options: Options(
           followRedirects: true,
@@ -610,23 +399,22 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
   Future<void> applyLocalWatermark(Map<String, dynamic> formDateValues) async {
     final inputFieldMap = {
-      "p_routeur_allume": routeurAllumeInputFieldBloc,
-      "p_test_signal_via_pm": testSignalViaPmInputFieldBloc,
-      "p_prise_avant": priseAvantInputFieldBloc,
-      "p_prise_apres": priseApresInputFieldBloc,
-      "p_passage_cable_avant": passageCableAvantInputFieldBloc,
-      "p_passage_cable_apres": passageCableApresInputFieldBloc,
-      "p_cassette_recto": cassetteRectoInputFieldBloc,
-      "p_cassette_verso": cassetteVersoInputFieldBloc,
-      "p_speed_test": speedTestInputFieldBloc,
-      "p_dos_routeur_cin": dosRouteurCinInputFieldBloc,
-      "p_nap_fat_bb_ouvert": napFatBbOuvertInputFieldBloc,
-      "p_nap_fat_bb_ferme": napFatBbFermeInputFieldBloc,
-      "p_slimbox_ouvert": slimboxOuvertInputFieldBloc,
-      "p_slimbox_ferme": slimboxFermeInputFieldBloc,
+      pTraceAvant_1_inputFieldBloc.name: pTraceAvant_1_inputFieldBloc,
+      pTraceAvant_2_inputFieldBloc.name: pTraceAvant_2_inputFieldBloc,
+      pTraceAvant_3_inputFieldBloc.name: pTraceAvant_3_inputFieldBloc,
+      pTraceAvant_4_inputFieldBloc.name: pTraceAvant_4_inputFieldBloc,
+      pTraceApres_1_InputFieldBloc.name: pTraceApres_1_InputFieldBloc,
+      pTraceApres_2_InputFieldBloc.name: pTraceApres_2_InputFieldBloc,
+      pTraceApres_3_InputFieldBloc.name: pTraceApres_3_InputFieldBloc,
+      pTraceApres_4_InputFieldBloc.name: pTraceApres_4_InputFieldBloc,
+      pPositionPlan_1_InputFieldBloc.name: pPositionPlan_1_InputFieldBloc,
+      pPositionPlan_2_FieldBloc.name: pPositionPlan_2_FieldBloc,
     };
 
-    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    String fileName = DateTime
+        .now()
+        .millisecondsSinceEpoch
+        .toString();
 
     for (var mapKey in formDateValues.keys) {
       if (inputFieldMap.containsKey(mapKey)) {
@@ -637,11 +425,11 @@ class InterventionFormBLoc extends FormBloc<String, String> {
             if (xfileSrc != null) {
               final fileResult = File(xfileSrc.path ?? "");
               final image =
-                  imagePLugin.decodeImage(fileResult.readAsBytesSync());
+              imagePLugin.decodeImage(fileResult.readAsBytesSync());
 
               if (image != null) {
                 final fileResultWithWatermark =
-                    File('${dir.path}/$fileName.png');
+                File('${dir.path}/$fileName.png');
                 fileResultWithWatermark
                     .writeAsBytesSync(imagePLugin.encodePng(image));
 
@@ -721,7 +509,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
           currentStepValueNotifier.value = Tools.currentStep;
 
           emitSuccess(canSubmitAgain: true);
-          clearInputs();
           // }else {
           //   emitFailure(failureResponse: "WS");
           // }
@@ -732,7 +519,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         }
       } else {
         print('No internet :( Reason:');
-        writeToFileTraitementList(formDateValues);
         emitFailure(failureResponse: "sameStep");
         // emitSuccess();
       }
@@ -740,84 +526,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       // readJson();
     } catch (e) {
       emitFailure();
-    }
-  }
-
-  void clearInputs() {
-    print("clearInputs()");
-    print("Tools.currentStep ==> ${Tools.currentStep}");
-    clear();
-  }
-
-  void updateInputsFromDemande() async {
-    try {
-      // Update text fields
-      cableFibreTextField.updateValue(Tools.selectedDemande?.cableFibre ?? "");
-      numFatTextField.updateValue(Tools.selectedDemande?.numFat ?? "");
-      numSplitterTextField
-          .updateValue(Tools.selectedDemande?.numSplitter ?? "");
-      numSlimboxTextField.updateValue(Tools.selectedDemande?.numSlimbox ?? "");
-      speedUploadTextField
-          .updateValue(Tools.selectedDemande?.speedUpload ?? "");
-      speedDownloadTextField
-          .updateValue(Tools.selectedDemande?.speedDownload ?? "");
-      commentaireTextField
-          .updateValue(Tools.selectedDemande?.commentaire ?? "");
-      latitudeTextField.updateValue(Tools.selectedDemande?.latitude ?? "");
-      longintudeTextField.updateValue(Tools.selectedDemande?.longitude ?? "");
-      adresseMacTextField.updateValue(Tools.selectedDemande?.adresseMac ?? "");
-      snRouteurTextField.updateValue(Tools.selectedDemande?.snRouteur ?? "");
-      refRouteurTextField.updateValue(Tools.selectedDemande?.refRouteur ?? "");
-
-      // Fetch and update dropdown lists
-      var responseGetListEtats = await Tools.getEtatsListFromLocalAndInternet();
-      MotifDuBlocageDropDown.updateItems(responseGetListEtats.etats ?? []);
-
-      var responseGetFieldOptions =
-          await Tools.getFieldOptionsFromLocalAndInternet();
-
-      // Update dropdowns dynamically
-      updateDropdownItemsData(
-        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
-        dropdown: offreDropDown,
-        key: 'offre',
-        selectedId: Tools.selectedDemande?.offreId,
-      );
-      updateDropdownItemsData(
-        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
-        dropdown: articleDropDown,
-        key: 'article',
-        selectedId: Tools.selectedDemande?.articleId,
-      );
-      updateDropdownItemsData(
-        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
-        dropdown: boiteTypeDropDown,
-        key: 'boite_type',
-        selectedId: Tools.selectedDemande?.boiteTypeId,
-      );
-      updateDropdownItemsData(
-        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
-        dropdown: positionDropDown,
-        key: 'position',
-        selectedId: Tools.selectedDemande?.positionId,
-      );
-      updateDropdownItemsData(
-        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
-        dropdown: etatProvisioningDropDown,
-        key: 'etat_provisioning',
-        selectedId: Tools.selectedDemande?.etatProvisioningId,
-      );
-
-      // Update date field
-      String? selectedRdvDate = Tools.selectedDemande?.dateRdv;
-      if (selectedRdvDate?.isNotEmpty == true) {
-        print("selected rdvDate ==> ${selectedRdvDate}");
-        var parsedDate = DateTime.parse(selectedRdvDate!);
-        dateRdvInputFieldBLoc.updateValue(parsedDate);
-      }
-    } catch (e) {
-      print(e);
-      // Handle error (e.g., display error message or fallback behavior)
     }
   }
 
@@ -829,7 +537,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   }) {
     // Find the field option group by key
     var fieldOptionGroup = fieldOptionGroups.firstWhere(
-      (group) => group.key == key,
+          (group) => group.key == key,
       orElse: () => FieldOptionGroup(key: key, label: '', options: []),
     );
 
@@ -839,7 +547,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     // Update the selected value if a matching ID exists
     if (selectedId != null) {
       var selectedOption = fieldOptionGroup.options.firstWhere(
-        (option) => option.id == selectedId,
+            (option) => option.id == selectedId,
       );
       dropdown.updateValue(selectedOption);
     }
@@ -847,34 +555,19 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
   void updateValidatorFromDemande() {
     final validatorMappings = {
-      routeurAllumeInputFieldBloc: Tools.selectedDemande?.pRouteurAllume,
-      testSignalViaPmInputFieldBloc: Tools.selectedDemande?.pTestSignalViaPm,
-      priseAvantInputFieldBloc: Tools.selectedDemande?.pPriseAvant,
-      priseApresInputFieldBloc: Tools.selectedDemande?.pPriseApres,
-      passageCableAvantInputFieldBloc:
-          Tools.selectedDemande?.pPassageCableAvant,
-      passageCableApresInputFieldBloc:
-          Tools.selectedDemande?.pPassageCableApres,
-      cassetteRectoInputFieldBloc: Tools.selectedDemande?.pCassetteRecto,
-      cassetteVersoInputFieldBloc: Tools.selectedDemande?.pCassetteVerso,
-      speedTestInputFieldBloc: Tools.selectedDemande?.pSpeedTest,
-      dosRouteurCinInputFieldBloc: Tools.selectedDemande?.pDosRouteurCin,
-      napFatBbOuvertInputFieldBloc: Tools.selectedDemande?.pNapFatBbOuvert,
-      napFatBbFermeInputFieldBloc: Tools.selectedDemande?.pNapFatBbFerme,
-      slimboxOuvertInputFieldBloc: Tools.selectedDemande?.pSlimboxOuvert,
-      slimboxFermeInputFieldBloc: Tools.selectedDemande?.pSlimboxFerme,
+      pTraceAvant_1_inputFieldBloc: Tools.selectedDemande?.pRouteurAllume,
+      pTraceAvant_2_inputFieldBloc: Tools.selectedDemande?.pTestSignalViaPm,
+      pTraceAvant_3_inputFieldBloc: Tools.selectedDemande?.pPriseAvant,
+      pTraceAvant_4_inputFieldBloc: Tools.selectedDemande?.pPriseApres,
+      pTraceApres_1_InputFieldBloc:
+      Tools.selectedDemande?.pPassageCableAvant,
+      pTraceApres_2_InputFieldBloc:
+      Tools.selectedDemande?.pPassageCableApres,
+      pTraceApres_3_InputFieldBloc: Tools.selectedDemande?.pCassetteRecto,
+      pTraceApres_4_InputFieldBloc: Tools.selectedDemande?.pCassetteVerso,
+      pPositionPlan_1_InputFieldBloc: Tools.selectedDemande?.pSpeedTest,
+      pPositionPlan_2_FieldBloc: Tools.selectedDemande?.pDosRouteurCin,
       cableFibreTextField: Tools.selectedDemande?.cableFibre,
-      numFatTextField: Tools.selectedDemande?.numFat,
-      numSplitterTextField: Tools.selectedDemande?.numSplitter,
-      numSlimboxTextField: Tools.selectedDemande?.numSlimbox,
-      speedUploadTextField: Tools.selectedDemande?.speedUpload,
-      speedDownloadTextField: Tools.selectedDemande?.speedDownload,
-      commentaireTextField: Tools.selectedDemande?.commentaire,
-      latitudeTextField: Tools.selectedDemande?.latitude,
-      longintudeTextField: Tools.selectedDemande?.longitude,
-      adresseMacTextField: Tools.selectedDemande?.adresseMac,
-      snRouteurTextField: Tools.selectedDemande?.snRouteur,
-      refRouteurTextField: Tools.selectedDemande?.refRouteur,
     };
 
     validatorMappings.forEach((fieldBloc, value) {
@@ -893,13 +586,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
     // Handle dropdown-specific validations
     final dropdownMappings = {
-      MotifDuBlocageDropDown: Tools.selectedDemande?.etatId,
-      sousEtatsDropDown: Tools.selectedDemande?.subStatutId,
-      offreDropDown: Tools.selectedDemande?.offreId,
-      articleDropDown: Tools.selectedDemande?.articleId,
-      boiteTypeDropDown: Tools.selectedDemande?.boiteTypeId,
-      positionDropDown: Tools.selectedDemande?.positionId,
-      etatProvisioningDropDown: Tools.selectedDemande?.etatProvisioningId,
+      motifDuBlocageDropDown: Tools.selectedDemande?.etatId,
     };
 
     dropdownMappings.forEach((dropdownBloc, selectedId) {
@@ -908,13 +595,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         dropdownBloc.removeValidators([FieldBlocValidators.required]);
       }
     });
-
-    // Handle date field validation
-    if (Tools.selectedDemande?.dateRdv?.isNotEmpty == true) {
-      print(
-          "Removing validators for date field: ${dateRdvInputFieldBLoc.name}");
-      dateRdvInputFieldBLoc.removeValidators([FieldBlocValidators.required]);
-    }
   }
 }
 
@@ -942,12 +622,12 @@ class CustomInterceptor extends Interceptor {
   }
 }
 
-class InterventionForm extends StatefulWidget {
+class InterventionBlockageForm extends StatefulWidget {
   @override
-  _InterventionFormState createState() => _InterventionFormState();
+  _InterventionBlockageFormState createState() => _InterventionBlockageFormState();
 }
 
-class _InterventionFormState extends State<InterventionForm>
+class _InterventionBlockageFormState extends State<InterventionBlockageForm>
     with SingleTickerProviderStateMixin {
   var _type = StepperType.horizontal;
 
@@ -962,7 +642,7 @@ class _InterventionFormState extends State<InterventionForm>
   }
 
   ValueNotifier<int> commentaireCuuntValueNotifer =
-      ValueNotifier(Tools.selectedDemande?.commentaires?.length ?? 0);
+  ValueNotifier(Tools.selectedDemande?.commentaires?.length ?? 0);
 
   late Animation<double> _animation;
   late AnimationController _animationController;
@@ -975,7 +655,7 @@ class _InterventionFormState extends State<InterventionForm>
     );
 
     final curvedAnimation =
-        CurvedAnimation(curve: Curves.easeInOut, parent: _animationController);
+    CurvedAnimation(curve: Curves.easeInOut, parent: _animationController);
     _animation = Tween<double>(begin: 0, end: 1).animate(curvedAnimation);
 
     super.initState();
@@ -985,8 +665,8 @@ class _InterventionFormState extends State<InterventionForm>
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<InterventionFormBLoc>(
-          create: (BuildContext context) => InterventionFormBLoc(),
+        BlocProvider<InterventionBlockageFormBLoc>(
+          create: (BuildContext context) => InterventionBlockageFormBLoc(),
         ),
         BlocProvider<InternetCubit>(
           create: (BuildContext context) =>
@@ -1030,7 +710,7 @@ class _InterventionFormState extends State<InterventionForm>
                 key: formStepperScaffoldKey,
                 resizeToAvoidBottomInset: true,
                 floatingActionButtonLocation:
-                    FloatingActionButtonLocation.miniStartFloat,
+                FloatingActionButtonLocation.miniStartFloat,
 
                 //Init Floating Action Bubble
                 floatingActionButton: ValueListenableBuilder(
@@ -1056,13 +736,13 @@ class _InterventionFormState extends State<InterventionForm>
                                   print("share wtsp");
 
                                   String msgShare =
-                                      Tools.getMsgShare(currentStepNotifier);
+                                  Tools.getMsgShare(currentStepNotifier);
 
                                   print("msgShare ==> ${msgShare}");
 
                                   // shareToWhatsApp({String msg,String imagePath})
                                   final FlutterSocialShare flutterShareMe =
-                                      FlutterSocialShare();
+                                  FlutterSocialShare();
                                   await flutterShareMe.shareToWhatsApp(
                                       msg: msgShare);
 
@@ -1125,7 +805,8 @@ class _InterventionFormState extends State<InterventionForm>
                             animation: _animation,
 
                             // On pressed change animation state
-                            onPress: () => _animationController.isCompleted
+                            onPress: () =>
+                            _animationController.isCompleted
                                 ? _animationController.reverse()
                                 : _animationController.forward(),
 
@@ -1143,7 +824,7 @@ class _InterventionFormState extends State<InterventionForm>
                     builder: (BuildContext context) {
                       final ScaffoldState? scaffold = Scaffold.maybeOf(context);
                       final ModalRoute<Object?>? parentRoute =
-                          ModalRoute.of(context);
+                      ModalRoute.of(context);
                       final bool hasEndDrawer = scaffold?.hasEndDrawer ?? false;
                       final bool canPop = parentRoute?.canPop ?? false;
 
@@ -1154,7 +835,7 @@ class _InterventionFormState extends State<InterventionForm>
                       }
                     },
                   ),
-                  title: Text('Intervention'),
+                  title: Text('Blockage'),
                   actions: <Widget>[
                     // NamedIcon(
                     //     text: '',
@@ -1181,7 +862,7 @@ class _InterventionFormState extends State<InterventionForm>
                 ),
                 endDrawer: EndDrawerWidget(),
                 body: SafeArea(
-                  child: FormBlocListener<InterventionFormBLoc, String, String>(
+                  child: FormBlocListener<InterventionBlockageFormBLoc, String, String>(
                     onLoading: (context, state) {
                       print("FormBlocListener onLoading");
                       LoadingDialog.show(context);
@@ -1217,7 +898,6 @@ class _InterventionFormState extends State<InterventionForm>
                       );
 
                       Tools.currentStep = state.currentStep;
-                      context.read<InterventionFormBLoc>().clearInputs();
 
                       if (state.stepCompleted == state.lastStep) {
                         Navigator.of(context).pushReplacement(
@@ -1261,8 +941,8 @@ class _InterventionFormState extends State<InterventionForm>
                     },
                     child: Stack(
                       children: [
-                        StepperFormBlocBuilder<InterventionFormBLoc>(
-                          formBloc: context.read<InterventionFormBLoc>(),
+                        StepperFormBlocBuilder<InterventionBlockageFormBLoc>(
+                          formBloc: context.read<InterventionBlockageFormBLoc>(),
                           type: _type,
                           physics: ClampingScrollPhysics(),
                           // onStepCancel: (formBloc) {
@@ -1271,13 +951,11 @@ class _InterventionFormState extends State<InterventionForm>
                           //
                           //
                           // },
-                          controlsBuilder: (
-                            BuildContext context,
-                            VoidCallback? onStepContinue,
-                            VoidCallback? onStepCancel,
-                            int step,
-                            FormBloc formBloc,
-                          ) {
+                          controlsBuilder: (BuildContext context,
+                              VoidCallback? onStepContinue,
+                              VoidCallback? onStepCancel,
+                              int step,
+                              FormBloc formBloc,) {
                             return Column(
                               children: <Widget>[
                                 Row(
@@ -1305,7 +983,9 @@ class _InterventionFormState extends State<InterventionForm>
                                           ),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor:
-                                                Theme.of(context).primaryColor,
+                                            Theme
+                                                .of(context)
+                                                .primaryColor,
                                             // Button color
                                             foregroundColor: Colors.white,
                                             // Text color
@@ -1315,8 +995,8 @@ class _InterventionFormState extends State<InterventionForm>
                                             // Button size
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
-                                                  BorderRadius.circular(
-                                                      30.0), // Rounded edges
+                                              BorderRadius.circular(
+                                                  30.0), // Rounded edges
                                             ),
                                           ),
                                         ),
@@ -1373,7 +1053,10 @@ class _InterventionFormState extends State<InterventionForm>
                                 child: Center(
                                   child: Container(
                                     color: Colors.grey.shade400,
-                                    width: MediaQuery.of(context).size.width,
+                                    width: MediaQuery
+                                        .of(context)
+                                        .size
+                                        .width,
                                     padding: const EdgeInsets.all(0.0),
                                     child: Center(
                                       child: Padding(
@@ -1405,7 +1088,7 @@ class _InterventionFormState extends State<InterventionForm>
     );
   }
 
-  FormBlocStep _step1(InterventionFormBLoc formBloc) {
+  FormBlocStep _step1(InterventionBlockageFormBLoc formBloc) {
     return FormBlocStep(
       title: Text('Intervention'),
       content: Column(
@@ -1417,457 +1100,214 @@ class _InterventionFormState extends State<InterventionForm>
             height: 20,
           ),
           buildSizedDivider(),
-          DropdownFieldBlocBuilder<Etat>(
-            selectFieldBloc: formBloc.MotifDuBlocageDropDown,
-            decoration: const InputDecoration(
-              labelText: 'Etat :',
-              prefixIcon: Icon(Icons.list),
-            ),
-            itemBuilder: (context, value) => FieldItem(
-              child: Text(value.name ?? ""),
-            ),
-          ),
-          DropdownFieldBlocBuilder<SousEtat>(
-            selectFieldBloc: formBloc.sousEtatsDropDown,
+          DropdownFieldBlocBuilder<FieldOption>(
+            selectFieldBloc: formBloc.motifDuBlocageDropDown,
             decoration: const InputDecoration(
               labelText: 'Motif du blocage :',
               prefixIcon: Icon(Icons.list),
             ),
-            itemBuilder: (context, value) => FieldItem(
-              child: Text(value.name ?? ""),
-            ),
+            itemBuilder: (context, value) =>
+                FieldItem(
+                  child: Text(value.name ?? ""),
+                ),
           ),
-          buildSizedDivider(),
-          DropdownFieldBlocBuilder<FieldOption>(
-            selectFieldBloc: formBloc.offreDropDown,
-            decoration: const InputDecoration(
-              labelText: 'Offre :',
-              prefixIcon: Icon(Icons.list),
-            ),
-            itemBuilder: (context, value) => FieldItem(
-              child: Text(value.name ?? ""),
-            ),
-          ),
-          DropdownFieldBlocBuilder<FieldOption>(
-            selectFieldBloc: formBloc.articleDropDown,
-            decoration: const InputDecoration(
-              labelText: 'Equipement :',
-              prefixIcon: Icon(Icons.list),
-            ),
-            itemBuilder: (context, value) => FieldItem(
-              child: Text(value.name ?? ""),
-            ),
-          ),
-          DropdownFieldBlocBuilder<FieldOption>(
-            selectFieldBloc: formBloc.boiteTypeDropDown,
-            decoration: const InputDecoration(
-              labelText: 'Boite type :',
-              prefixIcon: Icon(Icons.list),
-            ),
-            itemBuilder: (context, value) => FieldItem(
-              child: Text(value.name ?? ""),
-            ),
-          ),
-          DropdownFieldBlocBuilder<FieldOption>(
-            selectFieldBloc: formBloc.positionDropDown,
-            decoration: const InputDecoration(
-              labelText: 'Position :',
-              prefixIcon: Icon(Icons.list),
-            ),
-            itemBuilder: (context, value) => FieldItem(
-              child: Text(value.name ?? ""),
-            ),
-          ),
-          DropdownFieldBlocBuilder<FieldOption>(
-            selectFieldBloc: formBloc.etatProvisioningDropDown,
-            decoration: const InputDecoration(
-              labelText: 'Etat provisioning :',
-              prefixIcon: Icon(Icons.list),
-            ),
-            itemBuilder: (context, value) => FieldItem(
-              child: Text(value.name ?? ""),
-            ),
-          ),
-          buildSizedDivider(),
           TextFieldBlocBuilder(
             textFieldBloc: formBloc.cableFibreTextField,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: "Cable fibre :",
+              labelText: "Cable (12/24/48/72/144)FO :",
               prefixIcon: Icon(Icons.cable),
             ),
           ),
           TextFieldBlocBuilder(
-            textFieldBloc: formBloc.numFatTextField,
+            textFieldBloc: formBloc.boitierTextField,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: "Num fat :",
-              prefixIcon: Icon(Icons.numbers),
+              labelText: "Boitier (12/24/48/72/144)FO :",
+              prefixIcon: Icon(Icons.cable),
             ),
           ),
           TextFieldBlocBuilder(
-            textFieldBloc: formBloc.numSplitterTextField,
+            textFieldBloc: formBloc.tubeTextField,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: "Num splitter :",
-              prefixIcon: Icon(Icons.scatter_plot),
+              labelText: "Tube Galvanisé :",
+              prefixIcon: Icon(Icons.cable),
             ),
           ),
-          TextFieldBlocBuilder(
-            textFieldBloc: formBloc.numSlimboxTextField,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: "Num slimbox :",
-              prefixIcon: Icon(Icons.storage),
+          buildSizedDivider(),
+          CheckboxFieldBlocBuilder(
+            alignment: AlignmentDirectional.center,
+            booleanFieldBloc: formBloc.gcTradeBooleanFieldBloc,
+            body: Container(
+              alignment: Alignment.centerLeft,
+              child: Text('Besoin de GC traditionnels',
+                style: TextStyle(fontFamily: "Roboto"),),
             ),
           ),
-          TextFieldBlocBuilder(
-            textFieldBloc: formBloc.speedUploadTextField,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: "Speed upload :",
-              prefixIcon: Icon(Icons.upload),
+          CheckboxFieldBlocBuilder(
+            alignment: AlignmentDirectional.center,
+            booleanFieldBloc: formBloc.gcExisteBooleanFieldBloc,
+            body: Container(
+              alignment: Alignment.centerLeft,
+              child: Text('GC Déjà existé :',
+                style: TextStyle(fontFamily: "Roboto"),),
             ),
           ),
-          TextFieldBlocBuilder(
-            textFieldBloc: formBloc.speedDownloadTextField,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: "Speed download :",
-              prefixIcon: Icon(Icons.download),
+          CheckboxFieldBlocBuilder(
+            alignment: AlignmentDirectional.center,
+            booleanFieldBloc: formBloc.gcBooleanFieldBloc,
+            body: Container(
+              alignment: Alignment.centerLeft,
+              child: Text('Besoin de GC :',
+                style: TextStyle(fontFamily: "Roboto"),),
+            ),
+          ),
+          CheckboxFieldBlocBuilder(
+            alignment: AlignmentDirectional.center,
+            booleanFieldBloc: formBloc.bPrBooleanFieldBloc,
+            body: Container(
+              alignment: Alignment.centerLeft,
+              child: Text('Blocage Propriétaires :',
+                style: TextStyle(fontFamily: "Roboto"),),
+            ),
+          ),
+          CheckboxFieldBlocBuilder(
+            alignment: AlignmentDirectional.center,
+            booleanFieldBloc: formBloc.paBooleanFieldBloc,
+            body: Container(
+              alignment: Alignment.centerLeft,
+              child: Text('Passage aérienne :',
+                style: TextStyle(fontFamily: "Roboto"),),
+            ),
+          ),
+          CheckboxFieldBlocBuilder(
+            alignment: AlignmentDirectional.center,
+            booleanFieldBloc: formBloc.fixationBooleanFieldBloc,
+            body: Container(
+              alignment: Alignment.centerLeft,
+              child: Text('Accessoires de fixation :',
+                style: TextStyle(fontFamily: "Roboto"),),
             ),
           ),
           buildSizedDivider(),
           Container(
               child: Row(
-            children: [
-              Flexible(
-                flex: 5,
-                child: Container(
-                  child: Column(
-                    children: [
-                      TextFieldBlocBuilder(
-                        readOnly: true,
-                        textFieldBloc: formBloc.latitudeTextField,
-                        clearTextIcon: Icon(Icons.cancel),
-                        suffixButton: SuffixButton.clearText,
-                        keyboardType: TextInputType.text,
-                        decoration: InputDecoration(
-                          labelText: "Latitude ",
-                          prefixIcon: Icon(Icons.location_on),
-                          disabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                width: 1,
-                                // color: Tools.colorPrimary
-                              ),
-                              borderRadius: BorderRadius.circular(20)),
-                        ),
-                      ),
-                      TextFieldBlocBuilder(
-                        readOnly: true,
-                        textFieldBloc: formBloc.longintudeTextField,
-                        keyboardType: TextInputType.text,
-                        clearTextIcon: Icon(Icons.cancel),
-                        suffixButton: SuffixButton.clearText,
-                        decoration: InputDecoration(
-                          labelText: "Longitude ",
-                          prefixIcon: Icon(Icons.location_on),
-                          disabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                width: 1,
-                                // color: Tools.colorPrimary
-                              ),
-                              borderRadius: BorderRadius.circular(20)),
-                        ),
-                      ),
-                    ],
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.pTraceAvant_1_inputFieldBloc,
+                      labelText: "Trace avant 1 :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
                   ),
-                ),
-              ),
-              Flexible(
-                // flex: 2,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      bool isLocationServiceOK =
-                          await ToolsExtra.checkLocationService();
-                      if (isLocationServiceOK == false) {
-                        CoolAlert.show(
-                            context: context,
-                            type: CoolAlertType.error,
-                            text:
-                                "Les services de localisation sont désactivés.",
-                            autoCloseDuration: Duration(seconds: 5),
-                            title: "Erreur");
-
-                        return;
-                      }
-
-                      Position? position = await Tools.determinePosition();
-
-                      if (position != null) {
-                        formBloc.latitudeTextField
-                            .updateValue(position.latitude.toStringAsFixed(4));
-                        formBloc.longintudeTextField
-                            .updateValue(position.longitude.toStringAsFixed(4));
-
-                        print("heeeeeee 3 ${position}");
-                      }
-                    } catch (e) {
-                      print(e);
-                      // showSimpleNotification(
-                      //   Text("Erreur"),
-                      //   subtitle: Text(e.toString()),
-                      //   background: Colors.green,
-                      //   duration: Duration(seconds: 5),
-                      // );
-
-                      CoolAlert.show(
-                          context: context,
-                          type: CoolAlertType.error,
-                          text: e.toString(),
-                          autoCloseDuration: Duration(seconds: 5),
-                          title: "Erreur");
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    // primary: Tools.colorPrimary,
-                    shape: CircleBorder(),
-                    padding: EdgeInsets.all(10),
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.pTraceAvant_2_inputFieldBloc,
+                      labelText: "Trace avant 2 :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
                   ),
-                  child: const Icon(Icons.my_location),
-                ),
-              ),
-            ],
-          )),
+                ],
+              )),
+          Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.pTraceAvant_3_inputFieldBloc,
+                      labelText: "Trace avant 3 :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.pTraceAvant_4_inputFieldBloc,
+                      labelText: "Trace avant 4 :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                ],
+              )),
+          Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.pTraceApres_1_InputFieldBloc,
+                      labelText: "Trace apres 1 :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.pTraceApres_2_InputFieldBloc,
+                      labelText: "Trace apres 2 :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                ],
+              )),
+          Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.pTraceApres_3_InputFieldBloc,
+                      labelText: "Trace apres 3 :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.pTraceApres_4_InputFieldBloc,
+                      labelText: "Trace apres 4 :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                ],
+              )),
+          Container(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.pPositionPlan_1_InputFieldBloc,
+                      labelText: "Position sur plan 1 :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                  Flexible(
+                    child: ImageFieldBlocBuilder(
+                      formBloc: formBloc,
+                      fileFieldBloc: formBloc.pPositionPlan_2_FieldBloc,
+                      labelText: "Position sur plan 2 :",
+                      iconField: Icon(Icons.image_not_supported),
+                    ),
+                  ),
+                ],
+              )),
           buildSizedDivider(),
-          QrScannerTextFieldBlocBuilder(
-            formBloc: formBloc,
-            iconField: Padding(
-              padding: const EdgeInsets.only(top: 10, left: 12),
-              child: FaIcon(
-                FontAwesomeIcons.terminal,
-              ),
-            ),
-            labelText: "Adresse Mac :",
-            qrCodeTextFieldBloc: formBloc.adresseMacTextField,
-          ),
-          QrScannerTextFieldBlocBuilder(
-            formBloc: formBloc,
-            iconField: Padding(
-              padding: const EdgeInsets.only(top: 10, left: 12),
-              child: FaIcon(
-                FontAwesomeIcons.terminal,
-              ),
-            ),
-            labelText: "SN Routeur :",
-            qrCodeTextFieldBloc: formBloc.snRouteurTextField,
-          ),
-          QrScannerTextFieldBlocBuilder(
-            formBloc: formBloc,
-            iconField: Padding(
-              padding: const EdgeInsets.only(top: 10, left: 12),
-              child: FaIcon(
-                FontAwesomeIcons.terminal,
-              ),
-            ),
-            labelText: "Ref routeur :",
-            qrCodeTextFieldBloc: formBloc.refRouteurTextField,
-          ),
-          buildSizedDivider(),
-          DateTimeFieldBlocBuilder(
-            dateTimeFieldBloc: formBloc.dateRdvInputFieldBLoc,
-            format: DateFormat('yyyy-MM-dd HH:mm'),
-            //  Y-m-d H:i:s
-            initialDate: DateTime.now(),
-            firstDate: DateTime.now(),
-            lastDate: DateTime(2100),
-            canSelectTime: true,
-            decoration: const InputDecoration(
-              labelText: 'Rendez-vous',
-              prefixIcon: Icon(Icons.date_range),
-            ),
-          ),
-          buildSizedDivider(),
-          Container(
-              child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.routeurAllumeInputFieldBloc,
-                  labelText: "Routeur allumé :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.testSignalViaPmInputFieldBloc,
-                  labelText: "Test signal via PM :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-            ],
-          )),
-          Container(
-              child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.priseAvantInputFieldBloc,
-                  labelText: "Prise avant :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.priseApresInputFieldBloc,
-                  labelText: "Prise après :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-            ],
-          )),
-          Container(
-              child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.passageCableAvantInputFieldBloc,
-                  labelText: "Passage câble avant :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.passageCableApresInputFieldBloc,
-                  labelText: "Passage câble après :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-            ],
-          )),
-          Container(
-              child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.cassetteRectoInputFieldBloc,
-                  labelText: "Cassette recto :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.cassetteVersoInputFieldBloc,
-                  labelText: "Cassette verso :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-            ],
-          )),
-          Container(
-              child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.speedTestInputFieldBloc,
-                  labelText: "Speed test :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.dosRouteurCinInputFieldBloc,
-                  labelText: "Dos routeur CIN :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-            ],
-          )),
-          Container(
-              child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.napFatBbOuvertInputFieldBloc,
-                  labelText: "NAP FAT BB ouvert :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.napFatBbFermeInputFieldBloc,
-                  labelText: "NAP FAT BB fermé :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-            ],
-          )),
-          Container(
-              child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.slimboxOuvertInputFieldBloc,
-                  labelText: "Slimbox ouvert :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-              Flexible(
-                child: ImageFieldBlocBuilder(
-                  formBloc: formBloc,
-                  fileFieldBloc: formBloc.slimboxFermeInputFieldBloc,
-                  labelText: "Slimbox fermé :",
-                  iconField: Icon(Icons.image_not_supported),
-                ),
-              ),
-            ],
-          )),
-          buildSizedDivider(),
-          TextFieldBlocBuilder(
-            textFieldBloc: formBloc.commentaireTextField,
-            keyboardType: TextInputType.text,
-            minLines: 6,
-            maxLines: 20,
-            decoration: InputDecoration(
-              labelText: "Commentaire :",
-              prefixIcon: Icon(Icons.comment),
-            ),
-          ),
-          buildSizedDivider(),
-          SignatureFieldBlocBuilder(
-            signatureFieldBloc: formBloc.signatureInputFieldBloc,
-            formBloc: formBloc,
-            labelText: "Signature :",
-          ),
-          buildSizedDivider(),
+
         ],
       ),
     );
@@ -1893,10 +1333,8 @@ class _InterventionFormState extends State<InterventionForm>
 
 class CustomRangeTextInputFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue,
+      TextEditingValue newValue,) {
     print("new value ==> ${newValue.text}");
     if (newValue.text == '')
       return TextEditingValue();
@@ -1916,10 +1354,8 @@ class NumericalRangeFormatter extends TextInputFormatter {
   NumericalRangeFormatter({required this.min, required this.max});
 
   @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue,
+      TextEditingValue newValue,) {
     print("oldValue ==> ${oldValue.text}");
     print("newValue ==> ${newValue.text}");
 
@@ -1963,28 +1399,31 @@ class EndDrawerWidget extends StatelessWidget {
                   child: Timeline.tileBuilder(
                     // physics: BouncingScrollPhysics(),
                     builder: TimelineTileBuilder.fromStyle(
-                      contentsBuilder: (context, index) => Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(Tools.selectedDemande
+                      contentsBuilder: (context, index) =>
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(Tools.selectedDemande
                                   ?.commentaires?[index].commentaire ??
-                              ""),
-                        ),
-                      ),
-                      oppositeContentsBuilder: (context, index) => Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Container(
-                            alignment: AlignmentDirectional.centerEnd,
-                            child: Column(
-                              children: [
-                                // Text(Tools.selectedDemande?.commentaires?[index].userId ?? ""),
-                                Text(Tools.selectedDemande?.commentaires?[index]
+                                  ""),
+                            ),
+                          ),
+                      oppositeContentsBuilder: (context, index) =>
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                                alignment: AlignmentDirectional.centerEnd,
+                                child: Column(
+                                  children: [
+                                    // Text(Tools.selectedDemande?.commentaires?[index].userId ?? ""),
+                                    Text(Tools.selectedDemande
+                                        ?.commentaires?[index]
                                         .created
                                         ?.trim() ??
-                                    ""),
-                              ],
-                            )),
-                      ),
+                                        ""),
+                                  ],
+                                )),
+                          ),
                       // itemExtent: 1,
                       // indicatorPositionBuilder: (BuildContext context, int index){
                       //   return 0 ;
@@ -1993,7 +1432,7 @@ class EndDrawerWidget extends StatelessWidget {
                       indicatorStyle: IndicatorStyle.dot,
                       connectorStyle: ConnectorStyle.dashedLine,
                       itemCount:
-                          Tools.selectedDemande?.commentaires?.length ?? 0,
+                      Tools.selectedDemande?.commentaires?.length ?? 0,
                     ),
                   ),
                 ),
@@ -2040,11 +1479,13 @@ class NamedIcon extends StatelessWidget {
             if (notificationCount > 0)
               Positioned(
                 top: 10,
-                right: notificationCount.toString().length >= 3 ? 15 : 25,
+                right: notificationCount
+                    .toString()
+                    .length >= 3 ? 15 : 25,
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration:
-                      BoxDecoration(shape: BoxShape.circle, color: Colors.red),
+                  BoxDecoration(shape: BoxShape.circle, color: Colors.red),
                   alignment: Alignment.center,
                   child: Text('$notificationCount'),
                 ),

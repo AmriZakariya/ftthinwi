@@ -29,7 +29,9 @@ import 'package:telcabo/models/response_get_liste_etats.dart';
 import 'package:telcabo/models/response_get_liste_pannes.dart';
 import 'package:telcabo/ui/InterventionHeaderInfoWidget.dart';
 import 'package:telcabo/ui/LoadingDialog.dart';
-import 'package:timelines/timelines.dart';
+import 'package:timelines_plus/timelines_plus.dart';
+
+import 'Intervention_blockage.dart';
 
 final GlobalKey<ScaffoldState> formStepperScaffoldKey =
     new GlobalKey<ScaffoldState>();
@@ -456,6 +458,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       onData: (previous, current) async* {
         var selectedEtat = current.value;
         print("selectedEtat id ==> ${selectedEtat?.id}");
+        print("selectedEtat name ==> ${selectedEtat?.name}");
         if (selectedEtat?.id == null) {
           return;
         }
@@ -466,6 +469,9 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         if (selectedEtat?.id == "8") {
           addFieldBloc(fieldBloc: etatProvisioningDropDown);
         }
+        if (selectedEtat?.id == "12") {
+          emit(FormBlocFailure(currentStep: Tools.currentStep, isValidByStep: {}, failureResponse: "blockage"));
+        }
 
         // chek if null or empty sub list
         if (selectedEtat?.sousEtats == null ||
@@ -475,6 +481,18 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
         sousEtatsDropDown.updateItems(selectedEtat?.sousEtats ?? []);
         addFieldBloc(fieldBloc: sousEtatsDropDown);
+
+        // if (selectedEtat?.name?.toUpperCase().contains("BLOC") == true) {
+        //   print("selectedEtat contain BLOC");
+        //   emit(FormBlocFailure(currentStep: Tools.currentStep, isValidByStep: {}, failureResponse: "blockage"));
+        //
+        //   // navigator
+        //   //     .push(
+        //   //   MaterialPageRoute(
+        //   //     builder: (_) => InterventionBlockageForm(),
+        //   //   ),
+        //   // )
+        // }
       },
     );
   }
@@ -613,8 +631,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     print("override updateCurrentStep");
     print("Tools.currentStep ==> ${Tools.currentStep}");
 
-    clearInputs();
-
     currentStepValueNotifier.value = Tools.currentStep;
 
     super.updateCurrentStep(step);
@@ -626,8 +642,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     print("Tools.currentStep ==> ${Tools.currentStep}");
 
     currentStepValueNotifier.value = Tools.currentStep;
-
-    clearInputs();
 
     super.previousStep();
   }
@@ -796,7 +810,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
           currentStepValueNotifier.value = Tools.currentStep;
 
           emitSuccess(canSubmitAgain: true);
-          clearInputs();
           // }else {
           //   emitFailure(failureResponse: "WS");
           // }
@@ -816,12 +829,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     } catch (e) {
       emitFailure();
     }
-  }
-
-  void clearInputs() {
-    print("clearInputs()");
-    print("Tools.currentStep ==> ${Tools.currentStep}");
-    clear();
   }
 
   void updateInputsFromDemande() async {
@@ -1025,7 +1032,12 @@ class InterventionForm extends StatefulWidget {
 class _InterventionFormState extends State<InterventionForm>
     with SingleTickerProviderStateMixin {
   var _type = StepperType.horizontal;
-
+  late NavigatorState navigator;
+  @override
+  void didChangeDependencies() {
+    navigator = Navigator.of(context);
+    super.didChangeDependencies();
+  }
   void _toggleType() {
     setState(() {
       if (_type == StepperType.horizontal) {
@@ -1062,6 +1074,9 @@ class _InterventionFormState extends State<InterventionForm>
       providers: [
         BlocProvider<InterventionFormBLoc>(
           create: (BuildContext context) => InterventionFormBLoc(),
+        ),
+        BlocProvider<InterventionBlockageFormBLoc>(
+          create: (BuildContext context) => InterventionBlockageFormBLoc(),
         ),
         BlocProvider<InternetCubit>(
           create: (BuildContext context) =>
@@ -1292,7 +1307,6 @@ class _InterventionFormState extends State<InterventionForm>
                       );
 
                       Tools.currentStep = state.currentStep;
-                      context.read<InterventionFormBLoc>().clearInputs();
 
                       if (state.stepCompleted == state.lastStep) {
                         Navigator.of(context).pushReplacement(
@@ -1301,6 +1315,16 @@ class _InterventionFormState extends State<InterventionForm>
                     },
                     onFailure: (context, state) {
                       print("FormBlocListener onFailure");
+
+
+                      if (state.failureResponse == "blockage") {
+                        navigator.push(
+                          MaterialPageRoute(
+                            builder: (_) => InterventionBlockageForm(),
+                          ),
+                        );
+                        return;
+                      }
 
                       if (state.failureResponse == "loadingTest") {
                         LoadingDialog.show(context);

@@ -15,6 +15,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:telcabo/Annulation.dart';
 import 'package:telcabo/DetailIntervention.dart';
 import 'package:telcabo/Intervention.dart';
+import 'package:telcabo/Intervention_blockage.dart';
 import 'package:telcabo/NotificationExample.dart';
 import 'package:telcabo/Planification.dart';
 import 'package:telcabo/Tools.dart';
@@ -88,6 +89,9 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
         providers: [
           BlocProvider<InterventionFormBLoc>(
             create: (BuildContext context) => InterventionFormBLoc(),
+          ),
+          BlocProvider<InterventionBlockageFormBLoc>(
+            create: (BuildContext context) => InterventionBlockageFormBLoc(),
           ),
           BlocProvider<PlanificationFormBloc>(
             create: (BuildContext context) => PlanificationFormBloc(),
@@ -294,7 +298,7 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                       navigator
                                                           .push(
                                                         MaterialPageRoute(
-                                                          builder: (_) => InterventionForm(),
+                                                          builder: (_) => InterventionBlockageForm(),
                                                         ),
                                                       )
                                                           .then((_) => filterListByMap());
