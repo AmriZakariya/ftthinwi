@@ -470,7 +470,9 @@ class InterventionFormBLoc extends FormBloc<String, String> {
           addFieldBloc(fieldBloc: etatProvisioningDropDown);
         }
         if (selectedEtat?.id == "12") {
+          print("selectedEtat contain BLOC");
           emit(FormBlocFailure(currentStep: Tools.currentStep, isValidByStep: {}, failureResponse: "blockage"));
+          return;
         }
 
         // chek if null or empty sub list
@@ -1314,7 +1316,7 @@ class _InterventionFormState extends State<InterventionForm>
                       }
                     },
                     onFailure: (context, state) {
-                      print("FormBlocListener onFailure");
+                      print("FormBlocListener onFailure ${state.failureResponse}");
 
 
                       if (state.failureResponse == "blockage") {
