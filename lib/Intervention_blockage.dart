@@ -34,8 +34,7 @@ import 'package:timelines_plus/timelines_plus.dart';
 import 'Intervention.dart';
 
 final GlobalKey<ScaffoldState> formStepperScaffoldKey =
-new GlobalKey<ScaffoldState>();
-
+    new GlobalKey<ScaffoldState>();
 
 class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   // late final ResponseGetListEtat responseListEtat;
@@ -102,9 +101,8 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
     initialValue: false,
   );
 
-
   final InputFieldBloc<XFile?, Object> pTraceAvant_1_inputFieldBloc =
-  InputFieldBloc(
+      InputFieldBloc(
     initialValue: null,
     name: "Blockage[p_trace_avant_1]",
     validators: [
@@ -118,7 +116,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   );
 
   final InputFieldBloc<XFile?, Object> pTraceAvant_2_inputFieldBloc =
-  InputFieldBloc(
+      InputFieldBloc(
     initialValue: null,
     name: "Blockage[p_trace_avant_2]",
     validators: [
@@ -132,7 +130,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   );
 
   final InputFieldBloc<XFile?, Object> pTraceAvant_3_inputFieldBloc =
-  InputFieldBloc(
+      InputFieldBloc(
     initialValue: null,
     name: "Blockage[p_trace_avant_3]",
     validators: [
@@ -146,7 +144,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   );
 
   final InputFieldBloc<XFile?, Object> pTraceAvant_4_inputFieldBloc =
-  InputFieldBloc(
+      InputFieldBloc(
     initialValue: null,
     name: "Blockage[p_trace_avant_4]",
     validators: [
@@ -160,7 +158,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   );
 
   final InputFieldBloc<XFile?, Object> pTraceApres_1_InputFieldBloc =
-  InputFieldBloc(
+      InputFieldBloc(
     initialValue: null,
     name: "Blockage[p_trace_apres_1]",
     validators: [
@@ -174,7 +172,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   );
 
   final InputFieldBloc<XFile?, Object> pTraceApres_2_InputFieldBloc =
-  InputFieldBloc(
+      InputFieldBloc(
     initialValue: null,
     name: "Blockage[p_trace_apres_2]",
     validators: [
@@ -188,7 +186,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   );
 
   final InputFieldBloc<XFile?, Object> pTraceApres_3_InputFieldBloc =
-  InputFieldBloc(
+      InputFieldBloc(
     initialValue: null,
     name: "Blockage[p_trace_apres_3]",
     validators: [
@@ -202,7 +200,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   );
 
   final InputFieldBloc<XFile?, Object> pTraceApres_4_InputFieldBloc =
-  InputFieldBloc(
+      InputFieldBloc(
     initialValue: null,
     name: "Blockage[p_trace_apres_4]",
     validators: [
@@ -215,8 +213,8 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  final InputFieldBloc<XFile?,
-      Object> pPositionPlan_1_InputFieldBloc = InputFieldBloc(
+  final InputFieldBloc<XFile?, Object> pPositionPlan_1_InputFieldBloc =
+      InputFieldBloc(
     initialValue: null,
     name: "Blockage[p_position_plan_1]",
     validators: [
@@ -230,22 +228,9 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   );
 
   final InputFieldBloc<XFile?, Object> pPositionPlan_2_FieldBloc =
-  InputFieldBloc(
+      InputFieldBloc(
     initialValue: null,
     name: "Blockage[p_position_plan_2]",
-    validators: [
-      FieldBlocValidators.required,
-    ],
-    toJson: (value) {
-      MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
-          filename: value?.name ?? "");
-      return file;
-    },
-  );
-
-  final InputFieldBloc<XFile?, Object> signatureInputFieldBloc = InputFieldBloc(
-    initialValue: null,
-    name: "Blockage[signature]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -285,13 +270,13 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
         pTraceApres_4_InputFieldBloc,
         pPositionPlan_1_InputFieldBloc,
         pPositionPlan_2_FieldBloc,
-        signatureInputFieldBloc
       ],
     );
   }
 
   @override
   void onLoading() async {
+    emitFailure(failureResponse: "loadingTest");
     Tools.initFiles();
     getApplicationDocumentsDirectory().then((Directory directory) {
       dir = directory;
@@ -302,7 +287,8 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
       }
     });
     try {
-      responseGetFieldOptions = await Tools.getFieldOptionsFromLocalAndInternet();
+      responseGetFieldOptions =
+          await Tools.getFieldOptionsFromLocalAndInternet();
       // Update dropdowns
       updateDropdownItems(
         fieldOptions: responseGetFieldOptions.fieldOptions,
@@ -411,10 +397,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
       pPositionPlan_2_FieldBloc.name: pPositionPlan_2_FieldBloc,
     };
 
-    String fileName = DateTime
-        .now()
-        .millisecondsSinceEpoch
-        .toString();
+    String fileName = DateTime.now().millisecondsSinceEpoch.toString();
 
     for (var mapKey in formDateValues.keys) {
       if (inputFieldMap.containsKey(mapKey)) {
@@ -425,11 +408,11 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
             if (xfileSrc != null) {
               final fileResult = File(xfileSrc.path ?? "");
               final image =
-              imagePLugin.decodeImage(fileResult.readAsBytesSync());
+                  imagePLugin.decodeImage(fileResult.readAsBytesSync());
 
               if (image != null) {
                 final fileResultWithWatermark =
-                File('${dir.path}/$fileName.png');
+                    File('${dir.path}/$fileName.png');
                 fileResultWithWatermark
                     .writeAsBytesSync(imagePLugin.encodePng(image));
 
@@ -537,7 +520,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   }) {
     // Find the field option group by key
     var fieldOptionGroup = fieldOptionGroups.firstWhere(
-          (group) => group.key == key,
+      (group) => group.key == key,
       orElse: () => FieldOptionGroup(key: key, label: '', options: []),
     );
 
@@ -547,7 +530,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
     // Update the selected value if a matching ID exists
     if (selectedId != null) {
       var selectedOption = fieldOptionGroup.options.firstWhere(
-            (option) => option.id == selectedId,
+        (option) => option.id == selectedId,
       );
       dropdown.updateValue(selectedOption);
     }
@@ -559,10 +542,8 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
       pTraceAvant_2_inputFieldBloc: Tools.selectedDemande?.pTestSignalViaPm,
       pTraceAvant_3_inputFieldBloc: Tools.selectedDemande?.pPriseAvant,
       pTraceAvant_4_inputFieldBloc: Tools.selectedDemande?.pPriseApres,
-      pTraceApres_1_InputFieldBloc:
-      Tools.selectedDemande?.pPassageCableAvant,
-      pTraceApres_2_InputFieldBloc:
-      Tools.selectedDemande?.pPassageCableApres,
+      pTraceApres_1_InputFieldBloc: Tools.selectedDemande?.pPassageCableAvant,
+      pTraceApres_2_InputFieldBloc: Tools.selectedDemande?.pPassageCableApres,
       pTraceApres_3_InputFieldBloc: Tools.selectedDemande?.pCassetteRecto,
       pTraceApres_4_InputFieldBloc: Tools.selectedDemande?.pCassetteVerso,
       pPositionPlan_1_InputFieldBloc: Tools.selectedDemande?.pSpeedTest,
@@ -624,7 +605,8 @@ class CustomInterceptor extends Interceptor {
 
 class InterventionBlockageForm extends StatefulWidget {
   @override
-  _InterventionBlockageFormState createState() => _InterventionBlockageFormState();
+  _InterventionBlockageFormState createState() =>
+      _InterventionBlockageFormState();
 }
 
 class _InterventionBlockageFormState extends State<InterventionBlockageForm>
@@ -642,7 +624,7 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
   }
 
   ValueNotifier<int> commentaireCuuntValueNotifer =
-  ValueNotifier(Tools.selectedDemande?.commentaires?.length ?? 0);
+      ValueNotifier(Tools.selectedDemande?.commentaires?.length ?? 0);
 
   late Animation<double> _animation;
   late AnimationController _animationController;
@@ -655,7 +637,7 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
     );
 
     final curvedAnimation =
-    CurvedAnimation(curve: Curves.easeInOut, parent: _animationController);
+        CurvedAnimation(curve: Curves.easeInOut, parent: _animationController);
     _animation = Tween<double>(begin: 0, end: 1).animate(curvedAnimation);
 
     super.initState();
@@ -707,10 +689,11 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                 ),
               ],
               child: Scaffold(
+                backgroundColor: Colors.grey[200],
                 key: formStepperScaffoldKey,
                 resizeToAvoidBottomInset: true,
                 floatingActionButtonLocation:
-                FloatingActionButtonLocation.miniStartFloat,
+                    FloatingActionButtonLocation.miniStartFloat,
 
                 //Init Floating Action Bubble
                 floatingActionButton: ValueListenableBuilder(
@@ -736,13 +719,13 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                                   print("share wtsp");
 
                                   String msgShare =
-                                  Tools.getMsgShare(currentStepNotifier);
+                                      Tools.getMsgShare(currentStepNotifier);
 
                                   print("msgShare ==> ${msgShare}");
 
                                   // shareToWhatsApp({String msg,String imagePath})
                                   final FlutterSocialShare flutterShareMe =
-                                  FlutterSocialShare();
+                                      FlutterSocialShare();
                                   await flutterShareMe.shareToWhatsApp(
                                       msg: msgShare);
 
@@ -805,8 +788,7 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                             animation: _animation,
 
                             // On pressed change animation state
-                            onPress: () =>
-                            _animationController.isCompleted
+                            onPress: () => _animationController.isCompleted
                                 ? _animationController.reverse()
                                 : _animationController.forward(),
 
@@ -824,7 +806,7 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                     builder: (BuildContext context) {
                       final ScaffoldState? scaffold = Scaffold.maybeOf(context);
                       final ModalRoute<Object?>? parentRoute =
-                      ModalRoute.of(context);
+                          ModalRoute.of(context);
                       final bool hasEndDrawer = scaffold?.hasEndDrawer ?? false;
                       final bool canPop = parentRoute?.canPop ?? false;
 
@@ -862,14 +844,15 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                 ),
                 endDrawer: EndDrawerWidget(),
                 body: SafeArea(
-                  child: FormBlocListener<InterventionBlockageFormBLoc, String, String>(
+                  child: FormBlocListener<InterventionBlockageFormBLoc, String,
+                      String>(
                     onLoading: (context, state) {
                       print("FormBlocListener onLoading");
                       LoadingDialog.show(context);
                     },
                     onLoaded: (context, state) {
                       print("FormBlocListener onLoaded");
-                      // LoadingDialog.hide(context);
+                      LoadingDialog.hide(context);
                     },
                     onLoadFailed: (context, state) {
                       print("FormBlocListener onLoadFailed");
@@ -942,7 +925,8 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                     child: Stack(
                       children: [
                         StepperFormBlocBuilder<InterventionBlockageFormBLoc>(
-                          formBloc: context.read<InterventionBlockageFormBLoc>(),
+                          formBloc:
+                              context.read<InterventionBlockageFormBLoc>(),
                           type: _type,
                           physics: ClampingScrollPhysics(),
                           // onStepCancel: (formBloc) {
@@ -951,11 +935,13 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                           //
                           //
                           // },
-                          controlsBuilder: (BuildContext context,
-                              VoidCallback? onStepContinue,
-                              VoidCallback? onStepCancel,
-                              int step,
-                              FormBloc formBloc,) {
+                          controlsBuilder: (
+                            BuildContext context,
+                            VoidCallback? onStepContinue,
+                            VoidCallback? onStepCancel,
+                            int step,
+                            FormBloc formBloc,
+                          ) {
                             return Column(
                               children: <Widget>[
                                 Row(
@@ -983,9 +969,7 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                                           ),
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor:
-                                            Theme
-                                                .of(context)
-                                                .primaryColor,
+                                                Theme.of(context).primaryColor,
                                             // Button color
                                             foregroundColor: Colors.white,
                                             // Text color
@@ -995,8 +979,8 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                                             // Button size
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
-                                              BorderRadius.circular(
-                                                  30.0), // Rounded edges
+                                                  BorderRadius.circular(
+                                                      30.0), // Rounded edges
                                             ),
                                           ),
                                         ),
@@ -1053,10 +1037,7 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                                 child: Center(
                                   child: Container(
                                     color: Colors.grey.shade400,
-                                    width: MediaQuery
-                                        .of(context)
-                                        .size
-                                        .width,
+                                    width: MediaQuery.of(context).size.width,
                                     padding: const EdgeInsets.all(0.0),
                                     child: Center(
                                       child: Padding(
@@ -1106,10 +1087,9 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
               labelText: 'Motif du blocage :',
               prefixIcon: Icon(Icons.list),
             ),
-            itemBuilder: (context, value) =>
-                FieldItem(
-                  child: Text(value.name ?? ""),
-                ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value.name ?? ""),
+            ),
           ),
           TextFieldBlocBuilder(
             textFieldBloc: formBloc.cableFibreTextField,
@@ -1141,8 +1121,10 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
             booleanFieldBloc: formBloc.gcTradeBooleanFieldBloc,
             body: Container(
               alignment: Alignment.centerLeft,
-              child: Text('Besoin de GC traditionnels',
-                style: TextStyle(fontFamily: "Roboto"),),
+              child: Text(
+                'Besoin de GC traditionnels',
+                style: TextStyle(fontFamily: "Roboto"),
+              ),
             ),
           ),
           CheckboxFieldBlocBuilder(
@@ -1150,8 +1132,10 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
             booleanFieldBloc: formBloc.gcExisteBooleanFieldBloc,
             body: Container(
               alignment: Alignment.centerLeft,
-              child: Text('GC Déjà existé :',
-                style: TextStyle(fontFamily: "Roboto"),),
+              child: Text(
+                'GC Déjà existé :',
+                style: TextStyle(fontFamily: "Roboto"),
+              ),
             ),
           ),
           CheckboxFieldBlocBuilder(
@@ -1159,8 +1143,10 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
             booleanFieldBloc: formBloc.gcBooleanFieldBloc,
             body: Container(
               alignment: Alignment.centerLeft,
-              child: Text('Besoin de GC :',
-                style: TextStyle(fontFamily: "Roboto"),),
+              child: Text(
+                'Besoin de GC :',
+                style: TextStyle(fontFamily: "Roboto"),
+              ),
             ),
           ),
           CheckboxFieldBlocBuilder(
@@ -1168,8 +1154,10 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
             booleanFieldBloc: formBloc.bPrBooleanFieldBloc,
             body: Container(
               alignment: Alignment.centerLeft,
-              child: Text('Blocage Propriétaires :',
-                style: TextStyle(fontFamily: "Roboto"),),
+              child: Text(
+                'Blocage Propriétaires :',
+                style: TextStyle(fontFamily: "Roboto"),
+              ),
             ),
           ),
           CheckboxFieldBlocBuilder(
@@ -1177,8 +1165,10 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
             booleanFieldBloc: formBloc.paBooleanFieldBloc,
             body: Container(
               alignment: Alignment.centerLeft,
-              child: Text('Passage aérienne :',
-                style: TextStyle(fontFamily: "Roboto"),),
+              child: Text(
+                'Passage aérienne :',
+                style: TextStyle(fontFamily: "Roboto"),
+              ),
             ),
           ),
           CheckboxFieldBlocBuilder(
@@ -1186,128 +1176,129 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
             booleanFieldBloc: formBloc.fixationBooleanFieldBloc,
             body: Container(
               alignment: Alignment.centerLeft,
-              child: Text('Accessoires de fixation :',
-                style: TextStyle(fontFamily: "Roboto"),),
+              child: Text(
+                'Accessoires de fixation :',
+                style: TextStyle(fontFamily: "Roboto"),
+              ),
             ),
           ),
           buildSizedDivider(),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.pTraceAvant_1_inputFieldBloc,
-                      labelText: "Trace avant 1 :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.pTraceAvant_2_inputFieldBloc,
-                      labelText: "Trace avant 2 :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.pTraceAvant_1_inputFieldBloc,
+                  labelText: "Trace avant 1 :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.pTraceAvant_2_inputFieldBloc,
+                  labelText: "Trace avant 2 :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.pTraceAvant_3_inputFieldBloc,
-                      labelText: "Trace avant 3 :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.pTraceAvant_4_inputFieldBloc,
-                      labelText: "Trace avant 4 :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.pTraceAvant_3_inputFieldBloc,
+                  labelText: "Trace avant 3 :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.pTraceAvant_4_inputFieldBloc,
+                  labelText: "Trace avant 4 :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.pTraceApres_1_InputFieldBloc,
-                      labelText: "Trace apres 1 :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.pTraceApres_2_InputFieldBloc,
-                      labelText: "Trace apres 2 :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.pTraceApres_1_InputFieldBloc,
+                  labelText: "Trace apres 1 :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.pTraceApres_2_InputFieldBloc,
+                  labelText: "Trace apres 2 :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.pTraceApres_3_InputFieldBloc,
-                      labelText: "Trace apres 3 :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.pTraceApres_4_InputFieldBloc,
-                      labelText: "Trace apres 4 :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.pTraceApres_3_InputFieldBloc,
+                  labelText: "Trace apres 3 :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.pTraceApres_4_InputFieldBloc,
+                  labelText: "Trace apres 4 :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           Container(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.pPositionPlan_1_InputFieldBloc,
-                      labelText: "Position sur plan 1 :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                  Flexible(
-                    child: ImageFieldBlocBuilder(
-                      formBloc: formBloc,
-                      fileFieldBloc: formBloc.pPositionPlan_2_FieldBloc,
-                      labelText: "Position sur plan 2 :",
-                      iconField: Icon(Icons.image_not_supported),
-                    ),
-                  ),
-                ],
-              )),
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.pPositionPlan_1_InputFieldBloc,
+                  labelText: "Position sur plan 1 :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+              Flexible(
+                child: ImageFieldBlocBuilder(
+                  formBloc: formBloc,
+                  fileFieldBloc: formBloc.pPositionPlan_2_FieldBloc,
+                  labelText: "Position sur plan 2 :",
+                  iconField: Icon(Icons.image_not_supported),
+                ),
+              ),
+            ],
+          )),
           buildSizedDivider(),
-
         ],
       ),
     );
@@ -1333,8 +1324,10 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
 
 class CustomRangeTextInputFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue,
-      TextEditingValue newValue,) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     print("new value ==> ${newValue.text}");
     if (newValue.text == '')
       return TextEditingValue();
@@ -1354,8 +1347,10 @@ class NumericalRangeFormatter extends TextInputFormatter {
   NumericalRangeFormatter({required this.min, required this.max});
 
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue,
-      TextEditingValue newValue,) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     print("oldValue ==> ${oldValue.text}");
     print("newValue ==> ${newValue.text}");
 
@@ -1399,31 +1394,28 @@ class EndDrawerWidget extends StatelessWidget {
                   child: Timeline.tileBuilder(
                     // physics: BouncingScrollPhysics(),
                     builder: TimelineTileBuilder.fromStyle(
-                      contentsBuilder: (context, index) =>
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(Tools.selectedDemande
+                      contentsBuilder: (context, index) => Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(Tools.selectedDemande
                                   ?.commentaires?[index].commentaire ??
-                                  ""),
-                            ),
-                          ),
-                      oppositeContentsBuilder: (context, index) =>
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Container(
-                                alignment: AlignmentDirectional.centerEnd,
-                                child: Column(
-                                  children: [
-                                    // Text(Tools.selectedDemande?.commentaires?[index].userId ?? ""),
-                                    Text(Tools.selectedDemande
-                                        ?.commentaires?[index]
+                              ""),
+                        ),
+                      ),
+                      oppositeContentsBuilder: (context, index) => Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: Column(
+                              children: [
+                                // Text(Tools.selectedDemande?.commentaires?[index].userId ?? ""),
+                                Text(Tools.selectedDemande?.commentaires?[index]
                                         .created
                                         ?.trim() ??
-                                        ""),
-                                  ],
-                                )),
-                          ),
+                                    ""),
+                              ],
+                            )),
+                      ),
                       // itemExtent: 1,
                       // indicatorPositionBuilder: (BuildContext context, int index){
                       //   return 0 ;
@@ -1432,7 +1424,7 @@ class EndDrawerWidget extends StatelessWidget {
                       indicatorStyle: IndicatorStyle.dot,
                       connectorStyle: ConnectorStyle.dashedLine,
                       itemCount:
-                      Tools.selectedDemande?.commentaires?.length ?? 0,
+                          Tools.selectedDemande?.commentaires?.length ?? 0,
                     ),
                   ),
                 ),
@@ -1479,13 +1471,11 @@ class NamedIcon extends StatelessWidget {
             if (notificationCount > 0)
               Positioned(
                 top: 10,
-                right: notificationCount
-                    .toString()
-                    .length >= 3 ? 15 : 25,
+                right: notificationCount.toString().length >= 3 ? 15 : 25,
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration:
-                  BoxDecoration(shape: BoxShape.circle, color: Colors.red),
+                      BoxDecoration(shape: BoxShape.circle, color: Colors.red),
                   alignment: Alignment.center,
                   child: Text('$notificationCount'),
                 ),

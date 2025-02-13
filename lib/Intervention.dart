@@ -158,7 +158,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> routeurAllumeInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_routeur_allume",
+    name: "Traitement[p_routeur_allume]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -172,7 +172,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> testSignalViaPmInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_test_signal_via_pm",
+    name: "Traitement[p_test_signal_via_pm]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -186,7 +186,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> priseAvantInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_prise_avant",
+    name: "Traitement[p_prise_avant]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -200,7 +200,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> priseApresInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_prise_apres",
+    name: "Traitement[p_prise_apres]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -214,7 +214,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> passageCableAvantInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_passage_cable_avant",
+    name: "Traitement[p_passage_cable_avant]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -228,7 +228,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> passageCableApresInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_passage_cable_apres",
+    name: "Traitement[p_passage_cable_apres]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -242,7 +242,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> cassetteRectoInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_cassette_recto",
+    name: "Traitement[p_cassette_recto]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -256,7 +256,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> cassetteVersoInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_cassette_verso",
+    name: "Traitement[p_cassette_verso]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -269,7 +269,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
   final InputFieldBloc<XFile?, Object> speedTestInputFieldBloc = InputFieldBloc(
     initialValue: null,
-    name: "p_speed_test",
+    name: "Traitement[p_speed_test]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -283,7 +283,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> dosRouteurCinInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_dos_routeur_cin",
+    name: "Traitement[p_dos_routeur_cin]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -297,7 +297,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> napFatBbOuvertInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_nap_fat_bb_ouvert",
+    name: "Traitement[p_nap_fat_bb_ouvert]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -311,7 +311,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> napFatBbFermeInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_nap_fat_bb_ferme",
+    name: "Traitement[p_nap_fat_bb_ferme]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -325,7 +325,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> slimboxOuvertInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_slimbox_ouvert",
+    name: "Traitement[p_slimbox_ouvert]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -339,7 +339,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> slimboxFermeInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "p_slimbox_ferme",
+    name: "Traitement[p_slimbox_ferme]",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -854,8 +854,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       refRouteurTextField.updateValue(Tools.selectedDemande?.refRouteur ?? "");
 
       // Fetch and update dropdown lists
-      var responseGetListEtats = await Tools.getEtatsListFromLocalAndInternet();
-      etatsDropDown.updateItems(responseGetListEtats.etats ?? []);
+      Etat? selectedDropDown = responseGetListEtats.etats?.firstWhere(
+            (etat) => etat.id == Tools.selectedDemande?.id,
+      );
+      etatsDropDown.updateValue(selectedDropDown);
 
       var responseGetFieldOptions =
           await Tools.getFieldOptionsFromLocalAndInternet();

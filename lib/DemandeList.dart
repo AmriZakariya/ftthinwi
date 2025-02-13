@@ -90,9 +90,6 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
           BlocProvider<InterventionFormBLoc>(
             create: (BuildContext context) => InterventionFormBLoc(),
           ),
-          BlocProvider<InterventionBlockageFormBLoc>(
-            create: (BuildContext context) => InterventionBlockageFormBLoc(),
-          ),
           BlocProvider<PlanificationFormBloc>(
             create: (BuildContext context) => PlanificationFormBloc(),
           ),
@@ -298,7 +295,7 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                       navigator
                                                           .push(
                                                         MaterialPageRoute(
-                                                          builder: (_) => InterventionBlockageForm(),
+                                                          builder: (_) => InterventionForm(),
                                                         ),
                                                       )
                                                           .then((_) => filterListByMap());
@@ -351,12 +348,6 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                                SizedBox(height: 20.0),
-                                                InfoItemWidget(
-                                                  iconData: Icons.list,
-                                                  title: "Type :",
-                                                  description: demande.type ?? "",
                                                 ),
                                                 SizedBox(height: 20.0),
                                                 InfoItemWidget(
