@@ -29,6 +29,7 @@ import 'package:telcabo/models/response_get_liste_etats.dart';
 import 'package:telcabo/models/response_get_liste_pannes.dart';
 import 'package:telcabo/ui/InterventionHeaderInfoWidget.dart';
 import 'package:telcabo/ui/LoadingDialog.dart';
+import 'package:telcabo/ui/SuccessScreen.dart';
 import 'package:timelines_plus/timelines_plus.dart';
 
 import 'Intervention_blockage.dart';
@@ -119,12 +120,12 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     ],
   );
 
-  final numSplitterTextField = TextFieldBloc(
+  final numSplitterTextField = SelectFieldBloc(
     name: 'Traitement[num_splitter]',
     validators: [
       FieldBlocValidators.required,
-      minMaxValidator(min: 1, max: 5), // Using minMaxValidator with range 1-5
     ],
+    items: ["1", "2", "3", "4", "5"],
   );
 
   final numSlimboxTextField = TextFieldBloc(
@@ -150,15 +151,13 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
   final commentaireTextField = TextFieldBloc(
     name: 'Traitement[commentaire]',
-    validators: [
-      FieldBlocValidators.required,
-    ],
+    validators: [],
   );
 
   final InputFieldBloc<XFile?, Object> routeurAllumeInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_routeur_allume]",
+    name: "p_routeur_allume",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -172,7 +171,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> testSignalViaPmInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_test_signal_via_pm]",
+    name: "p_test_signal_via_pm",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -186,7 +185,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> priseAvantInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_prise_avant]",
+    name: "p_prise_avant",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -200,7 +199,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> priseApresInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_prise_apres]",
+    name: "p_prise_apres",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -214,7 +213,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> passageCableAvantInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_passage_cable_avant]",
+    name: "p_passage_cable_avant",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -228,7 +227,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> passageCableApresInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_passage_cable_apres]",
+    name: "p_passage_cable_apres",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -242,7 +241,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> cassetteRectoInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_cassette_recto]",
+    name: "p_cassette_recto",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -256,7 +255,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> cassetteVersoInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_cassette_verso]",
+    name: "p_cassette_verso",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -269,7 +268,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
   final InputFieldBloc<XFile?, Object> speedTestInputFieldBloc = InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_speed_test]",
+    name: "p_speed_test",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -283,7 +282,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> dosRouteurCinInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_dos_routeur_cin]",
+    name: "p_dos_routeur_cin",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -297,7 +296,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> napFatBbOuvertInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_nap_fat_bb_ouvert]",
+    name: "p_nap_fat_bb_ouvert",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -311,7 +310,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> napFatBbFermeInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_nap_fat_bb_ferme]",
+    name: "p_nap_fat_bb_ferme",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -325,7 +324,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> slimboxOuvertInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_slimbox_ouvert]",
+    name: "p_slimbox_ouvert",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -339,20 +338,20 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> slimboxFermeInputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Traitement[p_slimbox_ferme]",
+    name: "p_slimbox_ferme",
     validators: [
       FieldBlocValidators.required,
     ],
     toJson: (value) {
       MultipartFile file = MultipartFile.fromFileSync(value?.path ?? "",
-          filename: "Traitement[${value?.name}]");
+          filename: value?.name ?? "");
       return file;
     },
   );
 
   final InputFieldBloc<XFile?, Object> signatureInputFieldBloc = InputFieldBloc(
     initialValue: null,
-    name: "Traitement[signature]",
+    name: "signature",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -386,7 +385,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   final snRouteurTextField = TextFieldBloc(
     name: 'Traitement[sn_routeur]',
     validators: [
-      FieldBlocValidators.required,
+      //FieldBlocValidators.required,
     ],
   );
 
@@ -409,6 +408,9 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       return formatted;
     },
   );
+
+  // DateFormat('yyyy-MM-dd HH:mm:s')
+  var dateDebutInstallation  = DateFormat('yyyy-MM-dd HH:mm:s').format(DateTime.now());
 
   InterventionFormBLoc() : super(isLoading: true) {
     Tools.currentStep = (Tools.selectedDemande?.etape ?? 1) - 1;
@@ -435,7 +437,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         adresseMacTextField,
         snRouteurTextField,
         refRouteurTextField,
-        dateRdvInputFieldBLoc,
+        // dateRdvInputFieldBLoc,
         routeurAllumeInputFieldBloc,
         testSignalViaPmInputFieldBloc,
         priseAvantInputFieldBloc,
@@ -469,7 +471,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         if (selectedEtat?.id == "8") {
           addFieldBloc(fieldBloc: etatProvisioningDropDown);
         }
-        if (selectedEtat?.id == "12") {
+        if (selectedEtat?.id == "12" && Tools.selectedDemande?.etatId != "12") {
           print("selectedEtat contain BLOC");
           emit(FormBlocFailure(currentStep: Tools.currentStep, isValidByStep: {}, failureResponse: "blockage"));
           return;
@@ -504,20 +506,20 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
     try {
       final fieldBlocMapping = {
-        "p_routeur_allume": routeurAllumeInputFieldBloc,
-        "p_test_signal_via_pm": testSignalViaPmInputFieldBloc,
-        "p_prise_avant": priseAvantInputFieldBloc,
-        "p_prise_apres": priseApresInputFieldBloc,
-        "p_passage_cable_avant": passageCableAvantInputFieldBloc,
-        "p_passage_cable_apres": passageCableApresInputFieldBloc,
-        "p_cassette_recto": cassetteRectoInputFieldBloc,
-        "p_cassette_verso": cassetteVersoInputFieldBloc,
-        "p_speed_test": speedTestInputFieldBloc,
-        "p_dos_routeur_cin": dosRouteurCinInputFieldBloc,
-        "p_nap_fat_bb_ouvert": napFatBbOuvertInputFieldBloc,
-        "p_nap_fat_bb_ferme": napFatBbFermeInputFieldBloc,
-        "p_slimbox_ouvert": slimboxOuvertInputFieldBloc,
-        "p_slimbox_ferme": slimboxFermeInputFieldBloc,
+        routeurAllumeInputFieldBloc.name: routeurAllumeInputFieldBloc,
+        testSignalViaPmInputFieldBloc.name: testSignalViaPmInputFieldBloc,
+        priseAvantInputFieldBloc.name: priseAvantInputFieldBloc,
+        priseApresInputFieldBloc.name: priseApresInputFieldBloc,
+        passageCableAvantInputFieldBloc.name: passageCableAvantInputFieldBloc,
+        passageCableApresInputFieldBloc.name: passageCableApresInputFieldBloc,
+        cassetteRectoInputFieldBloc.name: cassetteRectoInputFieldBloc,
+        cassetteVersoInputFieldBloc.name: cassetteVersoInputFieldBloc,
+        speedTestInputFieldBloc.name: speedTestInputFieldBloc,
+        dosRouteurCinInputFieldBloc.name: dosRouteurCinInputFieldBloc,
+        napFatBbOuvertInputFieldBloc.name: napFatBbOuvertInputFieldBloc,
+        napFatBbFermeInputFieldBloc.name: napFatBbFermeInputFieldBloc,
+        slimboxOuvertInputFieldBloc.name: slimboxOuvertInputFieldBloc,
+        slimboxFermeInputFieldBloc.name: slimboxFermeInputFieldBloc,
       };
 
       for (var mapKey in jsonMapContent.keys) {
@@ -618,6 +620,8 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     }
   }
 
+
+
   void updateDropdownItems({
     required List<FieldOptionGroup> fieldOptions,
     required SelectFieldBloc dropdown,
@@ -667,6 +671,9 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         ..interceptors.add(CustomInterceptor())
         ..interceptors.add(dioLoggerInterceptor);
 
+      // print formData
+      Tools.logFormData(formData);
+
       final apiResponse = await dio.post(
         "${Tools.baseUrl}/traitements/add_mobile",
         data: formData,
@@ -701,20 +708,20 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
   Future<void> applyLocalWatermark(Map<String, dynamic> formDateValues) async {
     final inputFieldMap = {
-      "p_routeur_allume": routeurAllumeInputFieldBloc,
-      "p_test_signal_via_pm": testSignalViaPmInputFieldBloc,
-      "p_prise_avant": priseAvantInputFieldBloc,
-      "p_prise_apres": priseApresInputFieldBloc,
-      "p_passage_cable_avant": passageCableAvantInputFieldBloc,
-      "p_passage_cable_apres": passageCableApresInputFieldBloc,
-      "p_cassette_recto": cassetteRectoInputFieldBloc,
-      "p_cassette_verso": cassetteVersoInputFieldBloc,
-      "p_speed_test": speedTestInputFieldBloc,
-      "p_dos_routeur_cin": dosRouteurCinInputFieldBloc,
-      "p_nap_fat_bb_ouvert": napFatBbOuvertInputFieldBloc,
-      "p_nap_fat_bb_ferme": napFatBbFermeInputFieldBloc,
-      "p_slimbox_ouvert": slimboxOuvertInputFieldBloc,
-      "p_slimbox_ferme": slimboxFermeInputFieldBloc,
+      routeurAllumeInputFieldBloc.name: routeurAllumeInputFieldBloc,
+      testSignalViaPmInputFieldBloc.name: testSignalViaPmInputFieldBloc,
+      priseAvantInputFieldBloc.name: priseAvantInputFieldBloc,
+      priseApresInputFieldBloc.name: priseApresInputFieldBloc,
+      passageCableAvantInputFieldBloc.name: passageCableAvantInputFieldBloc,
+      passageCableApresInputFieldBloc.name: passageCableApresInputFieldBloc,
+      cassetteRectoInputFieldBloc.name: cassetteRectoInputFieldBloc,
+      cassetteVersoInputFieldBloc.name: cassetteVersoInputFieldBloc,
+      speedTestInputFieldBloc.name: speedTestInputFieldBloc,
+      dosRouteurCinInputFieldBloc.name: dosRouteurCinInputFieldBloc,
+      napFatBbOuvertInputFieldBloc.name: napFatBbOuvertInputFieldBloc,
+      napFatBbFermeInputFieldBloc.name: napFatBbFermeInputFieldBloc,
+      slimboxOuvertInputFieldBloc.name: slimboxOuvertInputFieldBloc,
+      slimboxFermeInputFieldBloc.name: slimboxFermeInputFieldBloc,
     };
 
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
@@ -785,6 +792,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
       Map<String, dynamic> formDateValues = await state.toJson();
 
+      var dateFinInstallation = DateFormat('yyyy-MM-dd HH:mm:s').format(DateTime.now());
       formDateValues.addAll({
         // "etape": Tools.currentStep + 1,
         "demande_id": Tools.selectedDemande?.id ?? "",
@@ -792,6 +800,8 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         "date": dateNowFormatted,
         "currentAddress": currentAddress,
         // "Traitement[commentaire_sup]": "commentaire_sup"
+        "Traitement[date_debut_installation]": dateDebutInstallation,
+        "Traitement[date_fin_installation]": dateFinInstallation
       });
 
       print(formDateValues);
@@ -838,8 +848,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       // Update text fields
       cableFibreTextField.updateValue(Tools.selectedDemande?.cableFibre ?? "");
       numFatTextField.updateValue(Tools.selectedDemande?.numFat ?? "");
-      numSplitterTextField
-          .updateValue(Tools.selectedDemande?.numSplitter ?? "");
+      if (Tools.selectedDemande?.numSplitter != null &&
+          ["1", "2", "3", "4", "5"].contains(Tools.selectedDemande!.numSplitter)) {
+        numSplitterTextField.updateValue(Tools.selectedDemande!.numSplitter!);
+      }
       numSlimboxTextField.updateValue(Tools.selectedDemande?.numSlimbox ?? "");
       speedUploadTextField
           .updateValue(Tools.selectedDemande?.speedUpload ?? "");
@@ -854,9 +866,19 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       refRouteurTextField.updateValue(Tools.selectedDemande?.refRouteur ?? "");
 
       // Fetch and update dropdown lists
-      Etat? selectedDropDown = responseGetListEtats.etats?.firstWhere(
-            (etat) => etat.id == Tools.selectedDemande?.id,
-      );
+      print("selected etat ===== ${Tools.selectedDemande?.etatId}");
+      Etat? selectedDropDown;
+
+      try {
+        selectedDropDown = responseGetListEtats.etats!.firstWhere(
+          (etat) => etat.id == Tools.selectedDemande?.etatId,
+        );
+      } catch (e) {
+        selectedDropDown = null; // Assign null if not found
+        print(
+            "No matching etat found for ID: ${Tools.selectedDemande?.etatId}");
+      }
+
       etatsDropDown.updateValue(selectedDropDown);
 
       var responseGetFieldOptions =
@@ -902,7 +924,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         dateRdvInputFieldBLoc.updateValue(parsedDate);
       }
     } catch (e) {
-      print(e);
+      print("Error while updating inputs from demande: ${e.toString()}");
       // Handle error (e.g., display error message or fallback behavior)
     }
   }
@@ -955,7 +977,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       numSlimboxTextField: Tools.selectedDemande?.numSlimbox,
       speedUploadTextField: Tools.selectedDemande?.speedUpload,
       speedDownloadTextField: Tools.selectedDemande?.speedDownload,
-      commentaireTextField: Tools.selectedDemande?.commentaire,
       latitudeTextField: Tools.selectedDemande?.latitude,
       longintudeTextField: Tools.selectedDemande?.longitude,
       adresseMacTextField: Tools.selectedDemande?.adresseMac,
@@ -1029,6 +1050,10 @@ class CustomInterceptor extends Interceptor {
 }
 
 class InterventionForm extends StatefulWidget {
+  final bool isFromBlocage;
+  // Constructor with named parameter
+  const InterventionForm({Key? key, required this.isFromBlocage}) : super(key: key);
+
   @override
   _InterventionFormState createState() => _InterventionFormState();
 }
@@ -1037,11 +1062,43 @@ class _InterventionFormState extends State<InterventionForm>
     with SingleTickerProviderStateMixin {
   var _type = StepperType.horizontal;
   late NavigatorState navigator;
+
+  Timer? _timer;
+  int _elapsedTime = 0; // Tracks elapsed time in seconds
+  bool _isRunning = false; // Tracks whether the timer is running
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _isRunning = true;
+    const oneSec = Duration(seconds: 1);
+    _timer = Timer.periodic(
+      oneSec,
+          (Timer timer) {
+        setState(() {
+          _elapsedTime++; // Increment elapsed time every second
+        });
+      },
+    );
+  }
+
+  void _stopTimer() {
+    setState(() {
+      _isRunning = false;
+      _timer?.cancel(); // Stop the timer
+    });
+  }
+
   @override
   void didChangeDependencies() {
     navigator = Navigator.of(context);
     super.didChangeDependencies();
   }
+
   void _toggleType() {
     setState(() {
       if (_type == StepperType.horizontal) {
@@ -1069,6 +1126,7 @@ class _InterventionFormState extends State<InterventionForm>
         CurvedAnimation(curve: Curves.easeInOut, parent: _animationController);
     _animation = Tween<double>(begin: 0, end: 1).animate(curvedAnimation);
 
+    _startTimer();
     super.initState();
   }
 
@@ -1283,6 +1341,16 @@ class _InterventionFormState extends State<InterventionForm>
                     onLoaded: (context, state) {
                       print("FormBlocListener onLoaded");
                       LoadingDialog.hide(context);
+
+                      if (Tools.selectedDemande?.etatId == "12") {
+                        print("selectedEtat contain BLOC");
+                        Tools.selectedBlockageEtatId = "12";
+                        navigator.push(
+                          MaterialPageRoute(
+                            builder: (_) => InterventionBlockageForm(),
+                          ),
+                        );
+                      }
                     },
                     onLoadFailed: (context, state) {
                       print("FormBlocListener onLoadFailed");
@@ -1318,8 +1386,8 @@ class _InterventionFormState extends State<InterventionForm>
                       }
                     },
                     onFailure: (context, state) {
-                      print("FormBlocListener onFailure ${state.failureResponse}");
-
+                      print(
+                          "FormBlocListener onFailure ${state.failureResponse}");
 
                       if (state.failureResponse == "blockage") {
                         navigator.push(
@@ -1508,9 +1576,43 @@ class _InterventionFormState extends State<InterventionForm>
     );
   }
 
+
+  // Method to create the custom title with elapsed time
+  Widget _buildTitleWithTime() {
+    // Format elapsed time into minutes and seconds
+    String formatTime(int seconds) {
+      int minutes = (seconds / 60).floor();
+      int remainingSeconds = seconds % 60;
+      return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+    }
+
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: 'Intervention ',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          TextSpan(
+            text: ' (Durée ${formatTime(_elapsedTime)})', // Display time in MM:SS format
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.normal,
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   FormBlocStep _step1(InterventionFormBLoc formBloc) {
     return FormBlocStep(
-      title: Text('Intervention'),
+      title: _buildTitleWithTime(), // Use the custom title widget here
       content: Column(
         children: <Widget>[
           InterventionHeaderInfoClientWidget(),
@@ -1572,16 +1674,6 @@ class _InterventionFormState extends State<InterventionForm>
             ),
           ),
           DropdownFieldBlocBuilder<FieldOption>(
-            selectFieldBloc: formBloc.positionDropDown,
-            decoration: const InputDecoration(
-              labelText: 'Position :',
-              prefixIcon: Icon(Icons.list),
-            ),
-            itemBuilder: (context, value) => FieldItem(
-              child: Text(value.name ?? ""),
-            ),
-          ),
-          DropdownFieldBlocBuilder<FieldOption>(
             selectFieldBloc: formBloc.etatProvisioningDropDown,
             decoration: const InputDecoration(
               labelText: 'Etat provisioning :',
@@ -1608,12 +1700,24 @@ class _InterventionFormState extends State<InterventionForm>
               prefixIcon: Icon(Icons.numbers),
             ),
           ),
-          TextFieldBlocBuilder(
-            textFieldBloc: formBloc.numSplitterTextField,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
+          DropdownFieldBlocBuilder(
+            selectFieldBloc: formBloc.numSplitterTextField,
+            decoration: const InputDecoration(
               labelText: "Num splitter :",
               prefixIcon: Icon(Icons.scatter_plot),
+            ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value),
+            ),
+          ),
+          DropdownFieldBlocBuilder<FieldOption>(
+            selectFieldBloc: formBloc.positionDropDown,
+            decoration: const InputDecoration(
+              labelText: 'position du brin splitter :',
+              prefixIcon: Icon(Icons.list),
+            ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value.name ?? ""),
             ),
           ),
           TextFieldBlocBuilder(
@@ -1778,20 +1882,20 @@ class _InterventionFormState extends State<InterventionForm>
             qrCodeTextFieldBloc: formBloc.refRouteurTextField,
           ),
           buildSizedDivider(),
-          DateTimeFieldBlocBuilder(
-            dateTimeFieldBloc: formBloc.dateRdvInputFieldBLoc,
-            format: DateFormat('yyyy-MM-dd HH:mm'),
-            //  Y-m-d H:i:s
-            initialDate: DateTime.now(),
-            firstDate: DateTime.now(),
-            lastDate: DateTime(2100),
-            canSelectTime: true,
-            decoration: const InputDecoration(
-              labelText: 'Rendez-vous',
-              prefixIcon: Icon(Icons.date_range),
-            ),
-          ),
-          buildSizedDivider(),
+          // DateTimeFieldBlocBuilder(
+          //   dateTimeFieldBloc: formBloc.dateRdvInputFieldBLoc,
+          //   format: DateFormat('yyyy-MM-dd HH:mm'),
+          //   //  Y-m-d H:i:s
+          //   initialDate: DateTime.now(),
+          //   firstDate: DateTime.now(),
+          //   lastDate: DateTime(2100),
+          //   canSelectTime: true,
+          //   decoration: const InputDecoration(
+          //     labelText: 'Rendez-vous',
+          //     prefixIcon: Icon(Icons.date_range),
+          //   ),
+          // ),
+          // buildSizedDivider(),
           Container(
               child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -2152,36 +2256,6 @@ class NamedIcon extends StatelessWidget {
                   child: Text('$notificationCount'),
                 ),
               )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SuccessScreen extends StatelessWidget {
-  const SuccessScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Icon(Icons.tag_faces, size: 100),
-            const SizedBox(height: 10),
-            const Text(
-              'Success',
-              style: TextStyle(fontSize: 54, color: Colors.black),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.replay),
-              label: const Text('AGAIN'),
-            ),
           ],
         ),
       ),

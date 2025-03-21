@@ -15,10 +15,12 @@ import 'package:image/image.dart' as imagePlugin;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:telcabo/DemandeList.dart';
 import 'package:telcabo/custome/ConnectivityCheckBlocBuilder.dart';
 import 'package:telcabo/models/response_get_demandes.dart';
 import 'package:telcabo/models/response_get_list_field_options.dart';
 import 'package:telcabo/models/response_get_liste_etats.dart';
+import 'custome/response_get_list_users.dart';
 import 'models/response_get_liste_pannes.dart';
 
 /// Utility class for network calls, file handling, and data caching.
@@ -32,6 +34,7 @@ class Tools {
 
   // Common fields
   static int currentStep = 1;
+  static String selectedBlockageEtatId = "12";
   static Map? searchFilter = {};
   static String currentDemandesEtatFilter = "";
   static String deviceToken = "";
@@ -39,12 +42,37 @@ class Tools {
   static String userId = "";
   static String userName = "";
   static String userEmail = "";
+  static String roleId = "";
 
   // Demand states
-  static const String ETAT_EN_COURS = "1";
-  static const String ETAT_PLANIFIE = "2";
-  static const String ETAT_RESOLU = "3";
-  static const String ETAT_ANNULE = "4";
+  static const String EN_COURS = "1";
+  static const String ANNULATION_CLIENT = "2";
+  static const String ATTENTE_RETOUR_CLIENT = "3";
+  static const String CLIENT_INJOIGNABLE = "4";
+  static const String CONTACT_ERRONE = "5";
+  static const String DOUBLON = "6";
+  static const String ATTENTE_ACTIVATION = "7";
+  static const String FIN_INSTALLATION = "8";
+  static const String INTERVENTION_BLOQUEE = "9";
+  static const String INSTALLATION_EN_COURS = "10";
+  static const String PLANIFIEE = "11";
+  static const String BLOCAGE_INSTALLATION = "12";
+
+  static const List<Map<String, String>> etats = [
+    {"title": "Demandes en cours", "etat": Tools.EN_COURS},
+    {"title": "Annulation client", "etat": Tools.ANNULATION_CLIENT},
+    {"title": "Attente retour client", "etat": Tools.ATTENTE_RETOUR_CLIENT},
+    {"title": "Client injoignable", "etat": Tools.CLIENT_INJOIGNABLE},
+    {"title": "Contact erroné", "etat": Tools.CONTACT_ERRONE},
+    {"title": "Doublon", "etat": Tools.DOUBLON},
+    {"title": "Attente activation", "etat": Tools.ATTENTE_ACTIVATION},
+    {"title": "Fin installation", "etat": Tools.FIN_INSTALLATION},
+    {"title": "Intervention bloquée", "etat": Tools.INTERVENTION_BLOQUEE},
+    {"title": "Installation en cours", "etat": Tools.INSTALLATION_EN_COURS},
+    {"title": "Planifiée", "etat": Tools.PLANIFIEE},
+    {"title": "Blocage installation", "etat": Tools.BLOCAGE_INSTALLATION},
+  ];
+
 
   // Language and colors
   static String languageCode = "ar";
@@ -94,6 +122,9 @@ class Tools {
     ],
   );
 
+  // static List<User> user
+
+  static List<User> userList = [];
   /// Initialize local files used for caching.
   static void initFiles() {
     _log("initFiles started");
@@ -367,6 +398,46 @@ class Tools {
     }
   }
 
+  static Future<bool> callAffectUserAPI(String userId, String demandeId) async {
+    _log("callAffectUserAPI started");
+
+    // Prepare the JSON map content
+    Map<String, dynamic> jsonMapContent = {
+      "User[id]": userId,
+      "Demande[id]": demandeId,
+      "CurrentUser[id]": Tools.userId,
+    };
+
+    // Convert to FormData
+    FormData formData = FormData.fromMap(jsonMapContent);
+
+    logFormData(formData);
+    try {
+      Dio dio = Dio()..interceptors.add(dioLoggerInterceptor);
+      _log("callAffectUserAPI: calling API");
+
+      // Call the API
+      Response apiResponse = await dio.post(
+        "$baseUrl/affectations/affecter_mobile", // Updated endpoint
+        data: formData,
+        options: Options(
+          method: "POST",
+          headers: {
+            'Content-Type': 'multipart/form-data;charset=UTF-8',
+          },
+        ),
+      );
+
+      _log("callAffectUserAPI: Response ${apiResponse.data}");
+
+      // Check if the response contains "000" (success indicator)
+      return (apiResponse.data.contains("000"));
+    } catch (e, st) {
+      _logError("callAffectUserAPI: Exception", e, st);
+      return false;
+    }
+  }
+
   /// Calls API to add mobile data from locale.
   static Future<bool> callWsAddMobileFromLocale(
       Map<String, dynamic> jsonMapContent) async {
@@ -583,10 +654,19 @@ class Tools {
           await prefs.setBool('isOnline', true);
           await prefs.setString('userId', uid);
           await prefs.setString('userName', uname);
+          await prefs.setString('role_id', uname);
           await prefs.setString('userEmail', formDateValues["username"] ?? "");
           userId = uid;
           userName = uname;
+          roleId = result["role_id"]?.toString() ?? "";
           userEmail = formDateValues["username"] ?? "";
+
+          // Parse and populate the userList
+          if (result.containsKey("user_list")) {
+            userList = (result["user_list"] as List)
+                .map((userJson) => User.fromJson(userJson))
+                .toList();
+          }
           return true;
         }
       }
@@ -653,6 +733,10 @@ class Tools {
             selectedIndex >= 0 &&
             selectedDemande != null) {
           demandesListSaved?.demandes?[selectedIndex] = selectedDemande!;
+
+
+          // Notify UI that the demandes list has been updated
+          demandeListKey.currentState?.filterListByMap();
         }
         return true;
       }
@@ -692,17 +776,35 @@ class Tools {
 
   /// Returns a color corresponding to the demande state.
   static Color getColorByEtatId(String? etatId) {
+    if (etatId == null) return Colors.transparent;
+
+    // Define the color mappings
+    const errorColor = Color(0xffdc3545); // Red
+    const warningColor = Color(0xfff4c22b); // Yellow
+    const plannedColor = Color(0xfffd7e14); // Orange
+    const inProgressColor = Color(0xff20c997); // Green
+    const completedColor = Color(0xff1de9b6); // Teal
+
+    // Use the static const variables for comparison
     switch (etatId) {
-      case ETAT_EN_COURS:
-        return Colors.transparent;
-      case ETAT_PLANIFIE:
-        return Colors.orange;
-      case ETAT_RESOLU:
-        return Colors.green;
-      case ETAT_ANNULE:
-        return Colors.red;
+      case ANNULATION_CLIENT:
+      case CONTACT_ERRONE:
+      case DOUBLON:
+      case INTERVENTION_BLOQUEE:
+      case BLOCAGE_INSTALLATION:
+        return errorColor;
+      case ATTENTE_RETOUR_CLIENT:
+      case CLIENT_INJOIGNABLE:
+        return warningColor;
+      case PLANIFIEE:
+        return plannedColor;
+      case ATTENTE_ACTIVATION:
+      case INSTALLATION_EN_COURS:
+        return inProgressColor;
+      case FIN_INSTALLATION:
+        return completedColor;
       default:
-        return Colors.transparent;
+        return Colors.transparent; // Default color for unknown states
     }
   }
 
@@ -763,5 +865,21 @@ class Tools {
       ADRESSE: ${demande?.adresseComplement1 ?? ""}
       ETAT: ${demande?.etatName ?? ""}
       ''';
+  }
+
+  static void logFormData(FormData formData) {
+    debugPrint("=== FormData Content ===");
+
+    // Log des champs texte
+    for (var field in formData.fields) {
+      debugPrint("Text Field - ${field.key}: ${field.value}");
+    }
+
+    // Log des fichiers
+    for (var file in formData.files) {
+      debugPrint("File Field - ${file.key}: ${file.value.filename}, ContentType: ${file.value.contentType}");
+    }
+
+    debugPrint("========================");
   }
 }

@@ -26,8 +26,8 @@ class SignatureFieldBlocBuilder extends StatefulWidget {
 
 class _SignatureFieldBlocBuilderState extends State<SignatureFieldBlocBuilder> {
   final SignatureController _controller = SignatureController(
-    penStrokeWidth: 5,
-    penColor: Colors.black,
+    penStrokeWidth: 2,
+    penColor: Colors.blue,
     exportBackgroundColor: Colors.white,
   );
 
@@ -79,6 +79,7 @@ class _SignatureFieldBlocBuilderState extends State<SignatureFieldBlocBuilder> {
               child: Signature(
                 controller: _controller,
                 height: 200,
+                width: 200,
                 backgroundColor: Colors.white,
               ),
             ),

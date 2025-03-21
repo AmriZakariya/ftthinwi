@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:image/image.dart' as imagePlugin;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:telcabo/Tools.dart';
+
+import 'dart:typed_data';
+import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
+import 'package:path/path.dart' as path;
 
 class ImageFieldBlocBuilder extends StatefulWidget {
   final InputFieldBloc<XFile?, Object> fileFieldBloc;
@@ -124,22 +128,35 @@ class _ImageFieldBlocBuilderState extends State<ImageFieldBlocBuilder> {
     );
   }
 
+
   Future<XFile?> _pickImage() async {
-    return await _picker.pickImage(
+    XFile? pickedFile = await _picker.pickImage(
       source: imageSrc == "camera" ? ImageSource.camera : ImageSource.gallery,
-      imageQuality: 50,
+      imageQuality: 50, // Adjust as needed
     );
+
+    if (pickedFile == null) return null;
+
+    File imageFile = File(pickedFile.path);
+
+    // Correct the rotation
+    XFile? fixedImageFile = await _fixImageRotation(imageFile);
+
+    return fixedImageFile;
   }
 
-  Future<File> _compressImage(XFile imageFile) async {
-    final tempDir = await getTemporaryDirectory();
-    final path = tempDir.path;
+  Future<XFile?> _fixImageRotation(File imageFile) async {
+    final dir = await getTemporaryDirectory();
+    final targetPath = path.join(dir.path, 'fixed_${path.basename(imageFile.path)}');
 
-    return compute(_compressImageInBackground, {
-      'path': imageFile.path,
-      'destination':
-      '$path/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg',
-    });
+    final compressedFile = await FlutterImageCompress.compressAndGetFile(
+      imageFile.absolute.path,
+      targetPath,
+      quality: 90, // Adjust quality if needed
+      autoCorrectionAngle: true, // Corrects rotation automatically
+    ); // Explicitly cast to File?
+
+    return compressedFile; // Return original file if compression fails
   }
 
   Widget _buildImageDisplay(
@@ -223,30 +240,30 @@ class _ImageFieldBlocBuilderState extends State<ImageFieldBlocBuilder> {
     String imageUrl = "${Tools.baseUrl}/img/demandes/";
 
     final imageMappings = {
-      "Traitement[p_routeur_allume]": Tools.selectedDemande?.pRouteurAllume ?? "",
-      "Traitement[p_test_signal_via_pm]": Tools.selectedDemande?.pTestSignalViaPm ?? "",
-      "Traitement[p_prise_avant]": Tools.selectedDemande?.pPriseAvant ?? "",
-      "Traitement[p_prise_apres]": Tools.selectedDemande?.pPriseApres ?? "",
-      "Traitement[p_passage_cable_avant]": Tools.selectedDemande?.pPassageCableAvant ?? "",
-      "Traitement[p_passage_cable_apres]": Tools.selectedDemande?.pPassageCableApres ?? "",
-      "Traitement[p_cassette_recto]": Tools.selectedDemande?.pCassetteRecto ?? "",
-      "Traitement[p_cassette_verso]": Tools.selectedDemande?.pCassetteVerso ?? "",
-      "Traitement[p_speed_test]": Tools.selectedDemande?.pSpeedTest ?? "",
-      "Traitement[p_dos_routeur_cin]": Tools.selectedDemande?.pDosRouteurCin ?? "",
-      "Traitement[p_nap_fat_bb_ouvert]": Tools.selectedDemande?.pNapFatBbOuvert ?? "",
-      "Traitement[p_nap_fat_bb_ferme]": Tools.selectedDemande?.pNapFatBbFerme ?? "",
-      "Traitement[p_slimbox_ouvert]": Tools.selectedDemande?.pSlimboxOuvert ?? "",
-      "Traitement[p_slimbox_ferme]": Tools.selectedDemande?.pSlimboxFerme ?? "",
-      "Blockage[p_trace_avant_1]": Tools.selectedDemande?.pTraceAvant1 ?? "",
-      "Blockage[p_trace_avant_2]": Tools.selectedDemande?.pTraceAvant2 ?? "",
-      "Blockage[p_trace_avant_3]": Tools.selectedDemande?.pTraceAvant3 ?? "",
-      "Blockage[p_trace_avant_4]": Tools.selectedDemande?.pTraceAvant4 ?? "",
-      "Blockage[p_trace_apres_1]": Tools.selectedDemande?.pTraceApres1 ?? "",
-      "Blockage[p_trace_apres_2]": Tools.selectedDemande?.pTraceApres2 ?? "",
-      "Blockage[p_trace_apres_3]": Tools.selectedDemande?.pTraceApres3 ?? "",
-      "Blockage[p_trace_apres_4]": Tools.selectedDemande?.pTraceApres4 ?? "",
-      "Blockage[p_position_plan_1]": Tools.selectedDemande?.pPositionPlan1 ?? "",
-      "Blockage[p_position_plan_2]": Tools.selectedDemande?.pPositionPlan2 ?? "",
+      "p_routeur_allume": Tools.selectedDemande?.pRouteurAllume ?? "",
+      "p_test_signal_via_pm": Tools.selectedDemande?.pTestSignalViaPm ?? "",
+      "p_prise_avant": Tools.selectedDemande?.pPriseAvant ?? "",
+      "p_prise_apres": Tools.selectedDemande?.pPriseApres ?? "",
+      "p_passage_cable_avant": Tools.selectedDemande?.pPassageCableAvant ?? "",
+      "p_passage_cable_apres": Tools.selectedDemande?.pPassageCableApres ?? "",
+      "p_cassette_recto": Tools.selectedDemande?.pCassetteRecto ?? "",
+      "p_cassette_verso": Tools.selectedDemande?.pCassetteVerso ?? "",
+      "p_speed_test": Tools.selectedDemande?.pSpeedTest ?? "",
+      "p_dos_routeur_cin": Tools.selectedDemande?.pDosRouteurCin ?? "",
+      "p_nap_fat_bb_ouvert": Tools.selectedDemande?.pNapFatBbOuvert ?? "",
+      "p_nap_fat_bb_ferme": Tools.selectedDemande?.pNapFatBbFerme ?? "",
+      "p_slimbox_ouvert": Tools.selectedDemande?.pSlimboxOuvert ?? "",
+      "p_slimbox_ferme": Tools.selectedDemande?.pSlimboxFerme ?? "",
+      "p_trace_avant_1": Tools.selectedDemande?.pTraceAvant1 ?? "",
+      "p_trace_avant_2": Tools.selectedDemande?.pTraceAvant2 ?? "",
+      "p_trace_avant_3": Tools.selectedDemande?.pTraceAvant3 ?? "",
+      "p_trace_avant_4": Tools.selectedDemande?.pTraceAvant4 ?? "",
+      "p_trace_apres_1": Tools.selectedDemande?.pTraceApres1 ?? "",
+      "p_trace_apres_2": Tools.selectedDemande?.pTraceApres2 ?? "",
+      "p_trace_apres_3": Tools.selectedDemande?.pTraceApres3 ?? "",
+      "p_trace_apres_4": Tools.selectedDemande?.pTraceApres4 ?? "",
+      "p_position_plan_1": Tools.selectedDemande?.pPositionPlan1 ?? "",
+      "p_position_plan_2": Tools.selectedDemande?.pPositionPlan2 ?? "",
     };
 
     // Append the corresponding value based on the fileFieldBloc name
@@ -254,13 +271,4 @@ class _ImageFieldBlocBuilderState extends State<ImageFieldBlocBuilder> {
 
     return imageUrl;
   }
-}
-
-Future<File> _compressImageInBackground(Map<String, String> params) async {
-  final originalImage =
-  imagePlugin.decodeImage(File(params['path']!).readAsBytesSync());
-  final resizedImage = imagePlugin.copyResize(originalImage!, width: 120);
-  final compressedImage = File(params['destination']!)
-    ..writeAsBytesSync(imagePlugin.encodeJpg(resizedImage, quality: 85));
-  return compressedImage;
 }

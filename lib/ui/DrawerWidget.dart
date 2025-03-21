@@ -71,72 +71,27 @@ class DrawerWidget extends StatelessWidget {
               style: Theme.of(context).textTheme.titleSmall,
             ),
           ),
-          ListTile(
-            onTap: () {
-              // context.read<SheetBloc>().add(SheetFetched(listType: SheetListType.webNovels));
-              Tools.currentDemandesEtatFilter = Tools.ETAT_EN_COURS ;
-              Navigator.pop(context);
-            },
-            leading: Icon(
-              Icons.list,
-              color: Theme.of(context).focusColor.withOpacity(1),
-            ),
-            title: Text(
-              "Demandes encours (${Tools.demandesListSaved?.demandes?.where((element) {
-                return Tools.ETAT_EN_COURS == element.etatId ;
-              }).length })",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-          ),
-          ListTile(
-            onTap: () {
-              // context.read<SheetBloc>().add(SheetFetched(listType: SheetListType.webNovels));
-              Tools.currentDemandesEtatFilter = Tools.ETAT_PLANIFIE ;
-              Navigator.pop(context);
-            },
-            leading: Icon(
-              Icons.list,
-              color: Theme.of(context).focusColor.withOpacity(1),
-            ),
-            title: Text(
-              "Demandes planifiées (${Tools.demandesListSaved?.demandes?.where((element) {
-                return Tools.ETAT_PLANIFIE == element.etatId ;
-              }).length })",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-          ),
-          ListTile(
-            onTap: () {
-              // context.read<SheetBloc>().add(SheetFetched(listType: SheetListType.webNovels));
-              Tools.currentDemandesEtatFilter = Tools.ETAT_RESOLU ;
-              Navigator.pop(context);
-            },
-            leading: Icon(
-              Icons.list,
-              color: Theme.of(context).focusColor.withOpacity(1),
-            ),
-            title: Text(
-              "Demandes resolus (${Tools.demandesListSaved?.demandes?.where((element) {
-                return Tools.ETAT_RESOLU == element.etatId ;
-              }).length })",
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-          ),
-          ListTile(
-            onTap: () {
-              // context.read<SheetBloc>().add(SheetFetched(listType: SheetListType.webNovels));
-              Tools.currentDemandesEtatFilter = Tools.ETAT_ANNULE ;
-              Navigator.pop(context);
-            },
-            leading: Icon(
-              Icons.list,
-              color: Theme.of(context).focusColor.withOpacity(1),
-            ),
-            title: Text(
-              "Demandes annulées (${Tools.demandesListSaved?.demandes?.where((element) {
-                return Tools.ETAT_ANNULE == element.etatId ;
-              }).length })",
-              style: Theme.of(context).textTheme.titleSmall,
+          SingleChildScrollView(
+            child: Column(
+              children: Tools.etats.map((etat) {
+                return ListTile(
+                  onTap: () {
+                    Tools.currentDemandesEtatFilter = etat["etat"]!;
+                    Navigator.pop(context);
+                  },
+                  leading: Icon(
+                    Icons.list,
+                    color: Theme.of(context).focusColor.withOpacity(1),
+                  ),
+                  title: Text(
+                    "${etat["title"]} ("
+                        "${Tools.demandesListSaved?.demandes?.where((element) {
+                      return etat["etat"] == element.etatId;
+                    }).length})",
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                );
+              }).toList(),
             ),
           ),
 

@@ -206,6 +206,7 @@ class HomePage extends StatelessWidget {
     Tools.userId = prefs.getString('userId') ?? "";
     Tools.userName = prefs.getString('userName') ?? "";
     Tools.userEmail = prefs.getString('userEmail') ?? "";
+    Tools.roleId = prefs.getString('role_id') ?? "";
 
     return prefs.getBool('isOnline') ?? false;
   }

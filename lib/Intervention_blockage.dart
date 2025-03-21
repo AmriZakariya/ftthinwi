@@ -29,9 +29,11 @@ import 'package:telcabo/models/response_get_liste_etats.dart';
 import 'package:telcabo/models/response_get_liste_pannes.dart';
 import 'package:telcabo/ui/InterventionHeaderInfoWidget.dart';
 import 'package:telcabo/ui/LoadingDialog.dart';
+import 'package:telcabo/ui/SuccessScreen.dart';
 import 'package:timelines_plus/timelines_plus.dart';
 
 import 'Intervention.dart';
+import 'custome/CustomBooleanFieldBloc.dart';
 
 final GlobalKey<ScaffoldState> formStepperScaffoldKey =
     new GlobalKey<ScaffoldState>();
@@ -76,35 +78,55 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
     ],
   );
 
-  final gcTradeBooleanFieldBloc = BooleanFieldBloc(
+  final numSlimboxTextField = TextFieldBloc(
+    name: 'Blockage[num_slimbox]',
+    validators: [
+      FieldBlocValidators.required,
+    ],
+  );
+
+  final numFatTextField = TextFieldBloc(
+    name: 'Blockage[num_fat]',
+    validators: [
+      FieldBlocValidators.required,
+    ],
+  );
+
+  final gcTradeBooleanFieldBloc = CustomBooleanFieldBloc(
     name: 'Blockage[gc_trad]',
     initialValue: false,
+    toJson: (value) => value ? "oui" : "non",
   );
-  final gcExisteBooleanFieldBloc = BooleanFieldBloc(
+  final gcExisteBooleanFieldBloc = CustomBooleanFieldBloc(
     name: 'Blockage[gc_existe]',
     initialValue: false,
+    toJson: (value) => value ? "oui" : "non",
   );
-  final gcBooleanFieldBloc = BooleanFieldBloc(
+  final gcBooleanFieldBloc = CustomBooleanFieldBloc(
     name: 'Blockage[gc]',
     initialValue: false,
+    toJson: (value) => value ? "oui" : "non",
   );
-  final bPrBooleanFieldBloc = BooleanFieldBloc(
+  final bPrBooleanFieldBloc = CustomBooleanFieldBloc(
     name: 'Blockage[b_pr]',
     initialValue: false,
+    toJson: (value) => value ? "oui" : "non",
   );
-  final paBooleanFieldBloc = BooleanFieldBloc(
+  final paBooleanFieldBloc = CustomBooleanFieldBloc(
     name: 'Blockage[pa]',
     initialValue: false,
+    toJson: (value) => value ? "oui" : "non",
   );
-  final fixationBooleanFieldBloc = BooleanFieldBloc(
+  final fixationBooleanFieldBloc = CustomBooleanFieldBloc(
     name: 'Blockage[fixation]',
     initialValue: false,
+    toJson: (value) => value ? "oui" : "non",
   );
 
   final InputFieldBloc<XFile?, Object> pTraceAvant_1_inputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Blockage[p_trace_avant_1]",
+    name: "p_trace_avant_1",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -118,7 +140,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> pTraceAvant_2_inputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Blockage[p_trace_avant_2]",
+    name: "p_trace_avant_2",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -132,7 +154,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> pTraceAvant_3_inputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Blockage[p_trace_avant_3]",
+    name: "p_trace_avant_3",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -146,7 +168,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> pTraceAvant_4_inputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Blockage[p_trace_avant_4]",
+    name: "p_trace_avant_4",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -160,7 +182,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> pTraceApres_1_InputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Blockage[p_trace_apres_1]",
+    name: "p_trace_apres_1",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -174,7 +196,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> pTraceApres_2_InputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Blockage[p_trace_apres_2]",
+    name: "p_trace_apres_2",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -188,7 +210,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> pTraceApres_3_InputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Blockage[p_trace_apres_3]",
+    name: "p_trace_apres_3",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -202,7 +224,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> pTraceApres_4_InputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Blockage[p_trace_apres_4]",
+    name: "p_trace_apres_4",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -216,7 +238,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> pPositionPlan_1_InputFieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Blockage[p_position_plan_1]",
+    name: "p_position_plan_1",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -230,7 +252,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   final InputFieldBloc<XFile?, Object> pPositionPlan_2_FieldBloc =
       InputFieldBloc(
     initialValue: null,
-    name: "Blockage[p_position_plan_2]",
+    name: "p_position_plan_2",
     validators: [
       FieldBlocValidators.required,
     ],
@@ -255,6 +277,8 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
         boitierTextField,
         tubeTextField,
         gcTradeBooleanFieldBloc,
+        numSlimboxTextField,
+        numFatTextField,
         gcExisteBooleanFieldBloc,
         gcBooleanFieldBloc,
         bPrBooleanFieldBloc,
@@ -295,6 +319,10 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
         dropdown: motifDuBlocageDropDown,
         key: 'substatut',
       );
+
+      updateInputsFromDemande();
+      updateValidatorFromDemande();
+
       emitLoaded();
     } catch (e) {
       print(e);
@@ -464,6 +492,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
       }
 
       Map<String, dynamic> formDateValues = await state.toJson();
+      formDateValues = replaceBoolWithOuiNon(formDateValues);
 
       formDateValues.addAll({
         // "etape": Tools.currentStep + 1,
@@ -471,7 +500,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
         "user_id": Tools.userId,
         "date": dateNowFormatted,
         "currentAddress": currentAddress,
-        // "Traitement[commentaire_sup]": "commentaire_sup"
+        "Traitement[etat_id]": Tools.selectedBlockageEtatId
       });
 
       print(formDateValues);
@@ -536,6 +565,41 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
     }
   }
 
+
+  void updateInputsFromDemande() async {
+    try {
+
+      var responseGetFieldOptions =
+      await Tools.getFieldOptionsFromLocalAndInternet();
+
+      // Update dropdowns dynamically
+      updateDropdownItemsData(
+        fieldOptionGroups: responseGetFieldOptions.fieldOptions,
+        dropdown: motifDuBlocageDropDown,
+        key: 'substatut',
+        selectedId: Tools.selectedDemande?.subStatutId,
+      );
+
+      // Update text fields
+      cableFibreTextField.updateValue(Tools.selectedDemande?.cableFibre ?? "");
+      boitierTextField.updateValue(Tools.selectedDemande?.boitier ?? "");
+      tubeTextField.updateValue(Tools.selectedDemande?.tube ?? "");
+      numSlimboxTextField.updateValue(Tools.selectedDemande?.numSlimbox ?? "");
+      numFatTextField.updateValue(Tools.selectedDemande?.numFat ?? "");
+
+      gcTradeBooleanFieldBloc.updateValue(Tools.selectedDemande?.gcTrad == "oui");
+      gcExisteBooleanFieldBloc.updateValue(Tools.selectedDemande?.gcExiste == "oui");
+      gcBooleanFieldBloc.updateValue(Tools.selectedDemande?.gc == "oui");
+      bPrBooleanFieldBloc.updateValue(Tools.selectedDemande?.bPr == "oui");
+      paBooleanFieldBloc.updateValue(Tools.selectedDemande?.pa == "oui");
+      fixationBooleanFieldBloc.updateValue(Tools.selectedDemande?.fixation == "oui");
+    } catch (e) {
+      print("Error while updating inputs from demande: ${e.toString()}");
+      // Handle error (e.g., display error message or fallback behavior)
+    }
+  }
+
+
   void updateValidatorFromDemande() {
     final validatorMappings = {
       pTraceAvant_1_inputFieldBloc: Tools.selectedDemande?.pRouteurAllume,
@@ -548,20 +612,12 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
       pTraceApres_4_InputFieldBloc: Tools.selectedDemande?.pCassetteVerso,
       pPositionPlan_1_InputFieldBloc: Tools.selectedDemande?.pSpeedTest,
       pPositionPlan_2_FieldBloc: Tools.selectedDemande?.pDosRouteurCin,
-      cableFibreTextField: Tools.selectedDemande?.cableFibre,
     };
 
     validatorMappings.forEach((fieldBloc, value) {
-      if (fieldBloc is TextFieldBloc) {
-        if (value?.isNotEmpty == true) {
-          print("Removing validators for field: ${fieldBloc.name}");
-          (fieldBloc).removeValidators([FieldBlocValidators.required]);
-        }
-      } else if (fieldBloc is InputFieldBloc) {
-        if (value?.isNotEmpty == true) {
-          print("Removing validators for field: ${fieldBloc.name}");
-          (fieldBloc).removeValidators([FieldBlocValidators.required]);
-        }
+      if (value?.isNotEmpty == true) {
+        print("Removing validators for field: ${fieldBloc.name}");
+        (fieldBloc).removeValidators([FieldBlocValidators.required]);
       }
     });
 
@@ -576,6 +632,24 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
         dropdownBloc.removeValidators([FieldBlocValidators.required]);
       }
     });
+  }
+
+  dynamic replaceBoolWithOuiNon(dynamic json) {
+    if (json is Map<String, dynamic>) {
+      // If it's a Map, iterate over its key-value pairs
+      return json.map((key, value) {
+        return MapEntry(key, replaceBoolWithOuiNon(value));
+      });
+    } else if (json is List) {
+      // If it's a List, iterate over its elements
+      return json.map((value) => replaceBoolWithOuiNon(value)).toList();
+    } else if (json is bool) {
+      // If it's a boolean, replace it with "oui" or "non"
+      return json ? "oui" : "non";
+    } else {
+      // If it's any other type, return it as-is
+      return json;
+    }
   }
 }
 
@@ -612,7 +686,12 @@ class InterventionBlockageForm extends StatefulWidget {
 class _InterventionBlockageFormState extends State<InterventionBlockageForm>
     with SingleTickerProviderStateMixin {
   var _type = StepperType.horizontal;
-
+  late NavigatorState navigator;
+  @override
+  void didChangeDependencies() {
+    navigator = Navigator.of(context);
+    super.didChangeDependencies();
+  }
   void _toggleType() {
     setState(() {
       if (_type == StepperType.horizontal) {
@@ -1115,6 +1194,22 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
               prefixIcon: Icon(Icons.cable),
             ),
           ),
+          TextFieldBlocBuilder(
+            textFieldBloc: formBloc.numSlimboxTextField,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: "Num slimbox :",
+              prefixIcon: Icon(Icons.storage),
+            ),
+          ),
+          TextFieldBlocBuilder(
+            textFieldBloc: formBloc.numFatTextField,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: "Num fat :",
+              prefixIcon: Icon(Icons.numbers),
+            ),
+          ),
           buildSizedDivider(),
           CheckboxFieldBlocBuilder(
             alignment: AlignmentDirectional.center,
@@ -1480,36 +1575,6 @@ class NamedIcon extends StatelessWidget {
                   child: Text('$notificationCount'),
                 ),
               )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SuccessScreen extends StatelessWidget {
-  const SuccessScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Icon(Icons.tag_faces, size: 100),
-            const SizedBox(height: 10),
-            const Text(
-              'Success',
-              style: TextStyle(fontSize: 54, color: Colors.black),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.replay),
-              label: const Text('AGAIN'),
-            ),
           ],
         ),
       ),

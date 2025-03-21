@@ -20,6 +20,7 @@ import 'package:telcabo/NotificationExample.dart';
 import 'package:telcabo/Planification.dart';
 import 'package:telcabo/Tools.dart';
 import 'package:telcabo/custome/ConnectivityCheckBlocBuilder.dart';
+import 'package:telcabo/custome/response_get_list_users.dart';
 import 'package:telcabo/models/response_get_demandes.dart';
 import 'package:telcabo/ui/DrawerWidget.dart';
 import 'package:telcabo/ui/InterventionHeaderInfoWidget.dart';
@@ -27,8 +28,11 @@ import 'package:telcabo/ui/LoadingDialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
+final GlobalKey<_DemandeListState> demandeListKey = GlobalKey<_DemandeListState>();
 
 class DemandeList extends StatefulWidget {
+  DemandeList({Key? key}) : super(key: demandeListKey);
+
   @override
   State<DemandeList> createState() => _DemandeListState();
 }
@@ -295,7 +299,9 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                       navigator
                                                           .push(
                                                         MaterialPageRoute(
-                                                          builder: (_) => InterventionForm(),
+                                                          builder: (_) => InterventionForm(
+                                                            isFromBlocage: false,
+                                                          ),
                                                         ),
                                                       )
                                                           .then((_) => filterListByMap());
@@ -397,7 +403,7 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                 InfoItemWidget(
                                                   iconData: Icons.edit_attributes_sharp,
                                                   title: "Etat :",
-                                                  description: demande.etatName ?? "",
+                                                  description: (demande.etatName ?? "") + (demande.etatId == "11" ? " ( ${demande.dateRdv} )" : ""),
                                                 ),
                                                 SizedBox(height: 20.0),
                                                 Divider(),
@@ -406,6 +412,12 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                   child: Column(
                                                     mainAxisAlignment: MainAxisAlignment.center,
                                                     children: [
+                                                      if(Tools.roleId == "1")
+                                                      AdminUserAffectation(
+                                                        demande: demande,
+                                                        currentUser: demande.userId,
+                                                        userList: Tools.userList,
+                                                      ),
                                                       DemandeBottomActionButton(
                                                         text: "voir",
                                                         backgroundColor: Colors.blue,
@@ -457,7 +469,9 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                           Tools.currentStep = (demande.etape ?? 1) - 1;
                                                           navigator.push(
                                                             MaterialPageRoute(
-                                                              builder: (_) => InterventionForm(),
+                                                              builder: (_) => InterventionForm(
+                                                                isFromBlocage: false,
+                                                              ),
                                                             ),
                                                           );
                                                         },
@@ -719,19 +733,13 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
 
   String getTitleText() {
     if (Tools.currentDemandesEtatFilter.isNotEmpty) {
-      String currentFilterEtatName = "";
-      if (Tools.currentDemandesEtatFilter == Tools.ETAT_EN_COURS) {
-        currentFilterEtatName = "en cours";
-      } else if (Tools.currentDemandesEtatFilter == Tools.ETAT_PLANIFIE) {
-        currentFilterEtatName = "planifiées";
-      } else if (Tools.currentDemandesEtatFilter == Tools.ETAT_RESOLU) {
-        currentFilterEtatName = "résolues";
-      } else if (Tools.currentDemandesEtatFilter == Tools.ETAT_ANNULE) {
-        currentFilterEtatName = "annulées";
-      }
-      return " Demandes ${currentFilterEtatName} (${Tools.demandesListSaved
-          ?.demandes?.where((element) {
-        return (Tools.currentDemandesEtatFilter == element.etatId);
+      String currentFilterEtatName = Tools.etats.firstWhere(
+            (etat) => etat["etat"] == Tools.currentDemandesEtatFilter,
+        orElse: () => {"title": ""},
+      )["title"] ?? "";
+
+      return "Demandes ${currentFilterEtatName} (${Tools.demandesListSaved?.demandes?.where((element) {
+        return Tools.currentDemandesEtatFilter == element.etatId;
       }).length})";
     }
 
@@ -769,36 +777,10 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                   title: 'Demandes disponibles',
                   value: "${Tools.demandesListSaved?.demandes?.length ?? 0}",
                 ),
-                _buildInfoRow(
-                  title: 'Demandes en cours',
-                  value:
-                  "${Tools.demandesListSaved?.demandes
-                      ?.where((element) =>
-                  element.etatId == Tools.ETAT_EN_COURS)
-                      .length ?? 0}",
-                ),
-                _buildInfoRow(
-                  title: 'Demandes planifiées',
-                  value:
-                  "${Tools.demandesListSaved?.demandes
-                      ?.where((element) =>
-                  element.etatId == Tools.ETAT_PLANIFIE)
-                      .length ?? 0}",
-                ),
-                _buildInfoRow(
-                  title: 'Demandes résolues',
-                  value:
-                  "${Tools.demandesListSaved?.demandes
-                      ?.where((element) => element.etatId == Tools.ETAT_RESOLU)
-                      .length ?? 0}",
-                ),
-                _buildInfoRow(
-                  title: 'Demandes annulées',
-                  value:
-                  "${Tools.demandesListSaved?.demandes
-                      ?.where((element) => element.etatId == Tools.ETAT_ANNULE)
-                      .length ?? 0}",
-                ),
+                ...Tools.etats.map((etat) => _buildInfoRow(
+                  title: etat["title"]!,
+                  value: "${Tools.demandesListSaved?.demandes?.where((element) => element.etatId == etat["etat"]).length ?? 0}",
+                )).toList(),
               ],
             ),
           ),
@@ -845,6 +827,84 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
               letterSpacing: 1.1,
               fontSize: 14,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+class AdminUserAffectation extends StatefulWidget {
+  final Demande demande;
+  final String currentUser;
+  final List<User> userList;
+
+  const AdminUserAffectation({
+    Key? key,
+    required this.demande,
+    required this.currentUser,
+    required this.userList,
+  }) : super(key: key);
+
+  @override
+  _AdminUserAffectationState createState() => _AdminUserAffectationState();
+}
+
+class _AdminUserAffectationState extends State<AdminUserAffectation> {
+  String? _selectedUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedUser = widget.demande.userId?.isNotEmpty == true
+        ? widget.demande.userId
+        : widget.currentUser;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Affecter un utilisateur",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: _selectedUser,
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onChanged: (String? newValue) async {
+              setState(() {
+                _selectedUser = newValue;
+                widget.demande.userId = newValue!;
+              });
+
+              // Call the API when the user is changed
+              bool isSuccess = await Tools.callAffectUserAPI(newValue!, widget.demande.id);
+
+              // Display a snackbar based on the result
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(isSuccess
+                      ? "User affected successfully!"
+                      : "Failed to affect user."),
+                  backgroundColor: isSuccess ? Colors.green : Colors.red,
+                ),
+              );
+            },
+            items: widget.userList.map<DropdownMenuItem<String>>((User user) {
+              return DropdownMenuItem<String>(
+                value: user.id,
+                child: Text(user.name ?? "Utilisateur inconnu"),
+              );
+            }).toList(),
           ),
         ],
       ),

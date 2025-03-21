@@ -46,9 +46,6 @@ class PlanificationFormBloc extends FormBloc<String, String> {
 
   final commentaireTextField = TextFieldBloc(
     name: 'commentaire',
-    validators: [
-      FieldBlocValidators.required,
-    ],
   );
 
   PlanificationFormBloc() : super(isLoading: true) {
@@ -57,6 +54,15 @@ class PlanificationFormBloc extends FormBloc<String, String> {
     print("Tools.currentStep ==> ${Tools.currentStep}");
     emit(FormBlocLoading(currentStep: Tools.currentStep));
 
+    // Update date field
+    String? selectedRdvDate = Tools.selectedDemande?.dateRdv;
+    if (selectedRdvDate?.isNotEmpty == true) {
+      print("selected rdvDate ==> ${selectedRdvDate}");
+      var parsedDate = DateTime.parse(selectedRdvDate!);
+      dateRdvInputFieldBLoc.updateValue(parsedDate);
+    }
+
+    commentaireTextField.updateValue(Tools.selectedDemande?.commentaire ?? "");
     addFieldBlocs(
       step: 0,
       fieldBlocs: [
@@ -102,7 +108,7 @@ class PlanificationFormBloc extends FormBloc<String, String> {
     print("override previousStep");
     print("Tools.currentStep ==> ${Tools.currentStep}");
 
-    clearInputs();
+    // clearInputs();
 
     super.previousStep();
   }
@@ -233,12 +239,12 @@ class PlanificationFormBloc extends FormBloc<String, String> {
     } else if (state.currentStep == 2) {}
   }
 
-  void clearInputs() {
-    print("clearInputs()");
-    print("Tools.currentStep ==> ${Tools.currentStep}");
-    dateRdvInputFieldBLoc.clear();
-    commentaireTextField.clear();
-  }
+  // void clearInputs() {
+  //   print("clearInputs()");
+  //   print("Tools.currentStep ==> ${Tools.currentStep}");
+  //   dateRdvInputFieldBLoc.clear();
+  //   commentaireTextField.clear();
+  // }
 
   bool writeToFileTraitementList(Map jsonMapContent) {
     print("Writing to writeToFileTraitementList!");
@@ -569,7 +575,7 @@ class _PlanificationFormState extends State<PlanificationForm>
                         title: "Succès",
                       );
 
-                      context.read<PlanificationFormBloc>().clear();
+                      // context.read<PlanificationFormBloc>().clear();
 
                       // Navigator.of(context).pop();
                     },
@@ -925,36 +931,6 @@ class NamedIcon extends StatelessWidget {
                   child: Text('$notificationCount'),
                 ),
               )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SuccessScreen extends StatelessWidget {
-  const SuccessScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Icon(Icons.tag_faces, size: 100),
-            const SizedBox(height: 10),
-            const Text(
-              'Success',
-              style: TextStyle(fontSize: 54, color: Colors.black),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.replay),
-              label: const Text('AGAIN'),
-            ),
           ],
         ),
       ),
