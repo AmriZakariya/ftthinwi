@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -17,16 +18,16 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image/image.dart' as imagePLugin;
 import 'package:image_picker/image_picker.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:telcabo/Tools.dart';
 import 'package:telcabo/ToolsExtra.dart';
-import 'package:telcabo/custome/ConnectivityCheckBlocBuilder.dart';
 import 'package:telcabo/custome/ImageFieldBlocbuilder.dart';
 import 'package:telcabo/custome/QrScannerTextFieldBlocBuilder.dart';
 import 'package:telcabo/custome/SignatureFieldBlocBuilder.dart';
+import 'package:telcabo/custome/connectivity_check.dart';
 import 'package:telcabo/models/response_get_list_field_options.dart';
 import 'package:telcabo/models/response_get_liste_etats.dart';
-import 'package:telcabo/models/response_get_liste_pannes.dart';
 import 'package:telcabo/ui/InterventionHeaderInfoWidget.dart';
 import 'package:telcabo/ui/LoadingDialog.dart';
 import 'package:telcabo/ui/SuccessScreen.dart';
@@ -40,13 +41,9 @@ final GlobalKey<ScaffoldState> formStepperScaffoldKey =
 ValueNotifier<int> currentStepValueNotifier = ValueNotifier(Tools.currentStep);
 
 class InterventionFormBLoc extends FormBloc<String, String> {
-  // late final ResponseGetListEtat responseListEtat;
-  // late final ResponseGetListType responseGetListType;
   late final ResponseGetListEtats responseGetListEtats;
   late final ResponseGetFieldOptions responseGetFieldOptions;
 
-  Directory dir = Directory("");
-  File fileTraitementList = File("");
 
   /* Form Fields */
 
@@ -410,7 +407,8 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   );
 
   // DateFormat('yyyy-MM-dd HH:mm:s')
-  var dateDebutInstallation  = DateFormat('yyyy-MM-dd HH:mm:s').format(DateTime.now());
+  var dateDebutInstallation =
+      DateFormat('yyyy-MM-dd HH:mm:s').format(DateTime.now());
 
   InterventionFormBLoc() : super(isLoading: true) {
     Tools.currentStep = (Tools.selectedDemande?.etape ?? 1) - 1;
@@ -473,7 +471,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         }
         if (selectedEtat?.id == "12" && Tools.selectedDemande?.etatId != "12") {
           print("selectedEtat contain BLOC");
-          emit(FormBlocFailure(currentStep: Tools.currentStep, isValidByStep: {}, failureResponse: "blockage"));
+          emit(FormBlocFailure(
+              currentStep: Tools.currentStep,
+              isValidByStep: {},
+              failureResponse: "blockage"));
           return;
         }
 
@@ -501,8 +502,10 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     );
   }
 
-  bool writeToFileTraitementList(Map jsonMapContent) {
+  Future<bool> writeToFileTraitementList(Map jsonMapContent) async {
     print("Writing to writeToFileTraitementList!");
+    Directory dir = await getApplicationDocumentsDirectory();
+    File fileTraitementList = new File(dir.path + "/fileTraitementList.json");
 
     try {
       final fieldBlocMapping = {
@@ -520,6 +523,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         napFatBbFermeInputFieldBloc.name: napFatBbFermeInputFieldBloc,
         slimboxOuvertInputFieldBloc.name: slimboxOuvertInputFieldBloc,
         slimboxFermeInputFieldBloc.name: slimboxFermeInputFieldBloc,
+        signatureInputFieldBloc.name: signatureInputFieldBloc
       };
 
       for (var mapKey in jsonMapContent.keys) {
@@ -549,6 +553,8 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
       List traitementList = traitementListMap["traitementList"];
 
+      print("traitementList ==> ${traitementList}");
+      print("jsonMapContent ==> ${jsonMapContent}");
       traitementList.add(json.encode(jsonMapContent));
 
       traitementListMap["traitementList"] = traitementList;
@@ -557,7 +563,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
       return true;
     } catch (e) {
-      print("exeption -- " + e.toString());
+      print("exeption -- ${e}");
     }
 
     return false;
@@ -566,23 +572,12 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   @override
   void onLoading() async {
     emitFailure(failureResponse: "loadingTest");
-    Tools.initFiles();
-
-    getApplicationDocumentsDirectory().then((Directory directory) {
-      dir = directory;
-      fileTraitementList = new File(dir.path + "/fileTraitementList.json");
-
-      if (!fileTraitementList.existsSync()) {
-        fileTraitementList.createSync();
-      }
-    });
 
     try {
-      responseGetListEtats = await Tools.getEtatsListFromLocalAndInternet();
+      responseGetListEtats = await Tools.readfileEtatsList();
       etatsDropDown.updateItems(responseGetListEtats.etats ?? []);
 
-      responseGetFieldOptions =
-          await Tools.getFieldOptionsFromLocalAndInternet();
+      responseGetFieldOptions = await Tools.readfileFieldOptions();
       // Update dropdowns
       updateDropdownItems(
         fieldOptions: responseGetFieldOptions.fieldOptions,
@@ -619,8 +614,6 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       emitLoadFailed(failureResponse: e.toString());
     }
   }
-
-
 
   void updateDropdownItems({
     required List<FieldOptionGroup> fieldOptions,
@@ -707,6 +700,8 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   }
 
   Future<void> applyLocalWatermark(Map<String, dynamic> formDateValues) async {
+    Directory dir = await getApplicationDocumentsDirectory();
+
     final inputFieldMap = {
       routeurAllumeInputFieldBloc.name: routeurAllumeInputFieldBloc,
       testSignalViaPmInputFieldBloc.name: testSignalViaPmInputFieldBloc,
@@ -792,7 +787,8 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
       Map<String, dynamic> formDateValues = await state.toJson();
 
-      var dateFinInstallation = DateFormat('yyyy-MM-dd HH:mm:s').format(DateTime.now());
+      var dateFinInstallation =
+          DateFormat('yyyy-MM-dd HH:mm:s').format(DateTime.now());
       formDateValues.addAll({
         // "etape": Tools.currentStep + 1,
         "demande_id": Tools.selectedDemande?.id ?? "",
@@ -849,7 +845,8 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       cableFibreTextField.updateValue(Tools.selectedDemande?.cableFibre ?? "");
       numFatTextField.updateValue(Tools.selectedDemande?.numFat ?? "");
       if (Tools.selectedDemande?.numSplitter != null &&
-          ["1", "2", "3", "4", "5"].contains(Tools.selectedDemande!.numSplitter)) {
+          ["1", "2", "3", "4", "5"]
+              .contains(Tools.selectedDemande!.numSplitter)) {
         numSplitterTextField.updateValue(Tools.selectedDemande!.numSplitter!);
       }
       numSlimboxTextField.updateValue(Tools.selectedDemande?.numSlimbox ?? "");
@@ -881,8 +878,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
       etatsDropDown.updateValue(selectedDropDown);
 
-      var responseGetFieldOptions =
-          await Tools.getFieldOptionsFromLocalAndInternet();
+      var responseGetFieldOptions = await Tools.readfileFieldOptions();
 
       // Update dropdowns dynamically
       updateDropdownItemsData(
@@ -1051,8 +1047,10 @@ class CustomInterceptor extends Interceptor {
 
 class InterventionForm extends StatefulWidget {
   final bool isFromBlocage;
+
   // Constructor with named parameter
-  const InterventionForm({Key? key, required this.isFromBlocage}) : super(key: key);
+  const InterventionForm({Key? key, required this.isFromBlocage})
+      : super(key: key);
 
   @override
   _InterventionFormState createState() => _InterventionFormState();
@@ -1078,7 +1076,7 @@ class _InterventionFormState extends State<InterventionForm>
     const oneSec = Duration(seconds: 1);
     _timer = Timer.periodic(
       oneSec,
-          (Timer timer) {
+      (Timer timer) {
         setState(() {
           _elapsedTime++; // Increment elapsed time every second
         });
@@ -1130,6 +1128,8 @@ class _InterventionFormState extends State<InterventionForm>
     super.initState();
   }
 
+  ConnectivityStatus? _previousState; // Track the previous state
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -1140,9 +1140,8 @@ class _InterventionFormState extends State<InterventionForm>
         BlocProvider<InterventionBlockageFormBLoc>(
           create: (BuildContext context) => InterventionBlockageFormBLoc(),
         ),
-        BlocProvider<InternetCubit>(
-          create: (BuildContext context) =>
-              InternetCubit(connectivity: Connectivity()),
+        BlocProvider<ConnectivityCubit>(
+          create: (BuildContext context) => ConnectivityCubit(),
         ),
       ],
       child: Builder(
@@ -1157,24 +1156,36 @@ class _InterventionFormState extends State<InterventionForm>
             ),
             child: MultiBlocListener(
               listeners: [
-                BlocListener<InternetCubit, InternetState>(
-                  listener: (context, state) {
-                    if (state is InternetConnected) {
-                      // showSimpleNotification(
-                      //   Text("status : en ligne"),
-                      //   // subtitle: Text("onlime"),
-                      //   background: Colors.green,
-                      //   duration: Duration(seconds: 5),
-                      // );
+                BlocListener<ConnectivityCubit, ConnectivityStatus>(
+                  listener: (context, state) async {
+                    // Skip the first state (initial state)
+                    if (_previousState != null && _previousState != state) {
+                      if (state == ConnectivityStatus.connected) {
+                        log('Showing toast: Internet Connected',
+                            name: 'ConnectivityScreen');
+                        showSimpleNotification(
+                          Text("Status : En ligne, synchronisation en cours"),
+                          background: Colors.green,
+                          duration: Duration(seconds: 5),
+                          position: NotificationPosition.bottom,
+                        );
+
+                        await Tools
+                            .readFileTraitementList(); // Your custom logic
+                      } else if (state == ConnectivityStatus.disconnected) {
+                        log('Showing toast: No Internet Connection',
+                            name: 'ConnectivityScreen');
+                        showSimpleNotification(
+                          Text("Status : Hors ligne"),
+                          background: Colors.red,
+                          duration: Duration(seconds: 5),
+                          position: NotificationPosition.bottom,
+                        );
+                      }
                     }
-                    if (state is InternetDisconnected) {
-                      // showSimpleNotification(
-                      //   Text("Offline"),
-                      //   // subtitle: Text("onlime"),
-                      //   background: Colors.red,
-                      //   duration: Duration(seconds: 5),
-                      // );
-                    }
+
+                    // Update the previous state
+                    _previousState = state;
                   },
                 ),
               ],
@@ -1523,45 +1534,9 @@ class _InterventionFormState extends State<InterventionForm>
                             // formBloc?.emit(FormBlocLoaded(currentStep: Tools.currentStep));
                           },
                         ),
-                        BlocBuilder<InternetCubit, InternetState>(
+                        BlocBuilder<ConnectivityCubit, ConnectivityStatus>(
                           builder: (context, state) {
-                            print("BlocBuilder **** InternetCubit ${state}");
-                            if (state is InternetConnected &&
-                                state.connectionType == ConnectionType.wifi) {
-                              // return Text(
-                              //   'Wifi',
-                              //   style: TextStyle(color: Colors.green, fontSize: 30),
-                              // );
-                            } else if (state is InternetConnected &&
-                                state.connectionType == ConnectionType.mobile) {
-                              // return Text(
-                              //   'Mobile',
-                              //   style: TextStyle(color: Colors.yellow, fontSize: 30),
-                              // );
-                            } else if (state is InternetDisconnected) {
-                              return Positioned(
-                                bottom: 0,
-                                child: Center(
-                                  child: Container(
-                                    color: Colors.grey.shade400,
-                                    width: MediaQuery.of(context).size.width,
-                                    padding: const EdgeInsets.all(0.0),
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                          "Pas d'accès internet",
-                                          style: TextStyle(
-                                              color: Colors.red, fontSize: 20),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-                            // return CircularProgressIndicator();
-                            return Container();
+                            return buildConnectivityStatus(state, context);
                           },
                         ),
                       ],
@@ -1575,7 +1550,6 @@ class _InterventionFormState extends State<InterventionForm>
       ),
     );
   }
-
 
   // Method to create the custom title with elapsed time
   Widget _buildTitleWithTime() {
@@ -1598,7 +1572,8 @@ class _InterventionFormState extends State<InterventionForm>
             ),
           ),
           TextSpan(
-            text: ' (Durée ${formatTime(_elapsedTime)})', // Display time in MM:SS format
+            text: ' (Durée ${formatTime(_elapsedTime)})',
+            // Display time in MM:SS format
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.normal,

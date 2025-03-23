@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:cool_alert/cool_alert.dart';
@@ -19,7 +20,7 @@ import 'package:telcabo/Intervention_blockage.dart';
 import 'package:telcabo/NotificationExample.dart';
 import 'package:telcabo/Planification.dart';
 import 'package:telcabo/Tools.dart';
-import 'package:telcabo/custome/ConnectivityCheckBlocBuilder.dart';
+import 'package:telcabo/custome/connectivity_check.dart';
 import 'package:telcabo/custome/response_get_list_users.dart';
 import 'package:telcabo/models/response_get_demandes.dart';
 import 'package:telcabo/ui/DrawerWidget.dart';
@@ -28,7 +29,8 @@ import 'package:telcabo/ui/LoadingDialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
-final GlobalKey<_DemandeListState> demandeListKey = GlobalKey<_DemandeListState>();
+final GlobalKey<_DemandeListState> demandeListKey =
+    GlobalKey<_DemandeListState>();
 
 class DemandeList extends StatefulWidget {
   DemandeList({Key? key}) : super(key: demandeListKey);
@@ -44,7 +46,7 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormBuilderState>();
 
   GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
-  GlobalKey<RefreshIndicatorState>();
+      GlobalKey<RefreshIndicatorState>();
   ResponseGetDemandesList? demandesList;
   Future<void>? _initDemandesData;
 
@@ -71,6 +73,7 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
     //   filterListByMap();
     // }
   }
+  ConnectivityStatus? _previousState; // Track the previous state
 
   @override
   Widget build(BuildContext context) {
@@ -97,33 +100,40 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
           BlocProvider<PlanificationFormBloc>(
             create: (BuildContext context) => PlanificationFormBloc(),
           ),
-          BlocProvider<InternetCubit>(
+          BlocProvider<ConnectivityCubit>(
             create: (BuildContext context) =>
-                InternetCubit(connectivity: Connectivity()),
+                ConnectivityCubit(),
           ),
         ],
         child: MultiBlocListener(
           listeners: [
-            BlocListener<InternetCubit, InternetState>(
-              listenWhen: (previous, current) {
-                return previous != current;
-              },
+            BlocListener<ConnectivityCubit, ConnectivityStatus>(
               listener: (context, state) async {
-                if (state is InternetConnected) {
-                  showSimpleNotification(
-                    Text("status : en ligne , synchronisation en cours "),
-                    background: Colors.green,
-                    duration: Duration(seconds: 5),
-                    position: NotificationPosition.bottom,
-                  );
+                // Skip the first state (initial state)
+                if (_previousState != null && _previousState != state) {
+                  if (state == ConnectivityStatus.connected) {
+                    log('Showing toast: Internet Connected', name: 'ConnectivityScreen');
+                    showSimpleNotification(
+                      Text("Status : En ligne, synchronisation en cours"),
+                      background: Colors.green,
+                      duration: Duration(seconds: 5),
+                      position: NotificationPosition.bottom,
+                    );
 
-                  await Tools.readFileTraitementList();
-                  final items = await Tools.getDemandes();
-                  setState(() {
-                    Tools.demandesListSaved = items;
-                    demandesList = items;
-                  });
+                    await Tools.readFileTraitementList(); // Your custom logic
+                  } else if (state == ConnectivityStatus.disconnected) {
+                    log('Showing toast: No Internet Connection', name: 'ConnectivityScreen');
+                    showSimpleNotification(
+                      Text("Status : Hors ligne"),
+                      background: Colors.red,
+                      duration: Duration(seconds: 5),
+                      position: NotificationPosition.bottom,
+                    );
+                  }
                 }
+
+                // Update the previous state
+                _previousState = state;
               },
             ),
           ],
@@ -196,15 +206,19 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(75.0)),
+                        borderRadius:
+                            BorderRadius.only(topLeft: Radius.circular(75.0)),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: FutureBuilder(
                           future: _initDemandesData,
-                          builder: (BuildContext context, AsyncSnapshot snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting ||
-                                snapshot.connectionState == ConnectionState.active) {
+                          builder:
+                              (BuildContext context, AsyncSnapshot snapshot) {
+                            if (snapshot.connectionState ==
+                                    ConnectionState.waiting ||
+                                snapshot.connectionState ==
+                                    ConnectionState.active) {
                               return LoadingWidget();
                             }
 
@@ -215,25 +229,32 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                 controller: _scrollController,
                                 child: ListView.builder(
                                   controller: _scrollController,
-                                  itemCount: demandesList?.demandes?.length ?? 0,
-                                  itemBuilder: (BuildContext context, int index) {
-                                    final demande = demandesList?.demandes?[index];
-                                    if (demande == null) return SizedBox.shrink();
+                                  itemCount:
+                                      demandesList?.demandes?.length ?? 0,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    final demande =
+                                        demandesList?.demandes?[index];
+                                    if (demande == null)
+                                      return SizedBox.shrink();
 
                                     return Container(
-                                      margin: const EdgeInsets.only(bottom: 8, left: 15),
-                                      decoration: BoxDecoration(
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Tools.getColorByEtatId(demande.etatId)
-                                                .withOpacity(0.5),
-                                            spreadRadius: 1,
-                                            blurRadius: 1,
-                                            offset: Offset(0, 0),
-                                          ),
-                                        ],
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
+                                        margin: const EdgeInsets.only(
+                                            bottom: 8, left: 15),
+                                        decoration: BoxDecoration(
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Tools.getColorByEtatId(
+                                                      demande.etatId)
+                                                  .withOpacity(0.5),
+                                              spreadRadius: 1,
+                                              blurRadius: 1,
+                                              offset: Offset(0, 0),
+                                            ),
+                                          ],
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
                                         child: Column(
                                           children: [
                                             // Header row
@@ -241,8 +262,10 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                               width: double.infinity,
                                               height: 65,
                                               decoration: BoxDecoration(
-                                                color: Tools.getColorByEtatId(demande.etatId),
-                                                borderRadius: BorderRadius.circular(20),
+                                                color: Tools.getColorByEtatId(
+                                                    demande.etatId),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
                                               ),
                                               child: Row(
                                                 children: [
@@ -250,8 +273,10 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                   Icon(Icons.person, size: 22),
                                                   Expanded(
                                                     child: Text(
-                                                      demande.consommateur ?? '',
-                                                      overflow: TextOverflow.ellipsis,
+                                                      demande.consommateur ??
+                                                          '',
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                       style: TextStyle(
                                                         color: Colors.black,
                                                         fontSize: 16.0,
@@ -260,13 +285,19 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                   ),
                                                   GestureDetector(
                                                     onTap: () {
-                                                      Tools.selectedDemande = demande;
-                                                      Tools.currentStep = (demande.etape ?? 1) - 1;
-                                                      currentStepValueNotifier.value = Tools.currentStep;
+                                                      Tools.selectedDemande =
+                                                          demande;
+                                                      Tools.currentStep =
+                                                          (demande.etape ?? 1) -
+                                                              1;
+                                                      currentStepValueNotifier
+                                                              .value =
+                                                          Tools.currentStep;
 
                                                       navigator.push(
                                                         MaterialPageRoute(
-                                                          builder: (_) => DetailIntervention(),
+                                                          builder: (_) =>
+                                                              DetailIntervention(),
                                                         ),
                                                       );
                                                     },
@@ -275,13 +306,17 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                       child: Container(
                                                         width: 30,
                                                         height: 30,
-                                                        decoration: BoxDecoration(
-                                                          color: Tools.colorPrimary,
-                                                          shape: BoxShape.circle,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: Tools
+                                                              .colorPrimary,
+                                                          shape:
+                                                              BoxShape.circle,
                                                         ),
                                                         child: Center(
                                                           child: FaIcon(
-                                                            FontAwesomeIcons.solidEye,
+                                                            FontAwesomeIcons
+                                                                .solidEye,
                                                             color: Colors.white,
                                                             size: 15,
                                                           ),
@@ -292,32 +327,42 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                   SizedBox(width: 8),
                                                   GestureDetector(
                                                     onTap: () {
-                                                      Tools.selectedDemande = demande;
-                                                      Tools.currentStep = (demande.etape ?? 1) - 1;
-                                                      currentStepValueNotifier.value = Tools.currentStep;
+                                                      Tools.selectedDemande =
+                                                          demande;
+                                                      Tools.currentStep =
+                                                          (demande.etape ?? 1) -
+                                                              1;
+                                                      currentStepValueNotifier
+                                                              .value =
+                                                          Tools.currentStep;
 
                                                       navigator
                                                           .push(
-                                                        MaterialPageRoute(
-                                                          builder: (_) => InterventionForm(
-                                                            isFromBlocage: false,
-                                                          ),
-                                                        ),
-                                                      )
-                                                          .then((_) => filterListByMap());
+                                                            MaterialPageRoute(
+                                                              builder: (_) =>
+                                                                  InterventionForm(
+                                                                isFromBlocage:
+                                                                    false,
+                                                              ),
+                                                            ),
+                                                          );
                                                     },
                                                     child: Tooltip(
                                                       message: "Intervention",
                                                       child: Container(
                                                         width: 30,
                                                         height: 30,
-                                                        decoration: BoxDecoration(
-                                                          color: Tools.colorPrimary,
-                                                          shape: BoxShape.circle,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: Tools
+                                                              .colorPrimary,
+                                                          shape:
+                                                              BoxShape.circle,
                                                         ),
                                                         child: Center(
                                                           child: FaIcon(
-                                                            FontAwesomeIcons.screwdriver,
+                                                            FontAwesomeIcons
+                                                                .screwdriver,
                                                             color: Colors.white,
                                                             size: 15,
                                                           ),
@@ -333,24 +378,33 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                             // ExpansionTile for details
                                             ExpansionTile(
                                               tilePadding: EdgeInsets.zero,
-                                              childrenPadding: EdgeInsets.all(15.0),
-                                              title: Center(child: Icon(Icons.expand_more)),
+                                              childrenPadding:
+                                                  EdgeInsets.all(15.0),
+                                              title: Center(
+                                                  child:
+                                                      Icon(Icons.expand_more)),
                                               trailing: SizedBox.shrink(),
                                               children: [
                                                 GestureDetector(
                                                   onTap: () {
-                                                    launch("tel://${demande.telMobile ?? ""}");
+                                                    launch(
+                                                        "tel://${demande.telMobile ?? ""}");
                                                   },
                                                   child: InfoItemWidget(
                                                     iconData: Icons.phone,
                                                     title: "Contact Client :",
-                                                    description: demande.telMobile ?? "",
+                                                    description:
+                                                        demande.telMobile ?? "",
                                                     iconEnd: Padding(
-                                                      padding: const EdgeInsets.only(right: 5),
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              right: 5),
                                                       child: FaIcon(
-                                                        FontAwesomeIcons.phoneVolume,
+                                                        FontAwesomeIcons
+                                                            .phoneVolume,
                                                         size: 22,
-                                                        color: Tools.colorPrimary,
+                                                        color:
+                                                            Tools.colorPrimary,
                                                       ),
                                                     ),
                                                   ),
@@ -359,118 +413,164 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                 InfoItemWidget(
                                                   iconData: Icons.list,
                                                   title: "CASE ID : ",
-                                                  description: demande.parent ?? "",
+                                                  description:
+                                                      demande.parent ?? "",
                                                 ),
                                                 SizedBox(height: 20.0),
                                                 InfoItemWidget(
                                                   iconData: Icons.list,
                                                   title: "Référence  : ",
-                                                  description: demande.numero ?? "",
+                                                  description:
+                                                      demande.numero ?? "",
                                                 ),
                                                 SizedBox(height: 20.0),
                                                 InfoItemWidget(
                                                   iconData: Icons.list,
                                                   title: "Description : ",
-                                                  description: demande.description ?? "",
+                                                  description:
+                                                      demande.description ?? "",
                                                 ),
                                                 SizedBox(height: 20.0),
                                                 InfoItemWidget(
                                                   iconData: Icons.list,
                                                   title: "Offre tarifaire : ",
-                                                  description: demande.offreId ?? "",
+                                                  description:
+                                                      demande.offreId ?? "",
                                                 ),
                                                 SizedBox(height: 20.0),
                                                 InfoItemWidget(
-                                                  iconData: Icons.location_city_sharp,
+                                                  iconData:
+                                                      Icons.location_city_sharp,
                                                   icon: FaIcon(
                                                     FontAwesomeIcons.city,
                                                     size: 18,
                                                   ),
                                                   title: "Adresse :",
-                                                  description: demande.adresseComplement1 ?? "",
+                                                  description: demande
+                                                          .adresseComplement1 ??
+                                                      "",
                                                 ),
                                                 SizedBox(height: 20.0),
                                                 InfoItemWidget(
                                                   iconData: Icons.list_alt,
                                                   icon: FaIcon(
-                                                    FontAwesomeIcons.signHanging,
+                                                    FontAwesomeIcons
+                                                        .signHanging,
                                                     size: 18,
                                                   ),
                                                   title: "Plaque :",
-                                                  description: demande.plaqueName ?? "",
+                                                  description:
+                                                      demande.plaqueName ?? "",
                                                 ),
                                                 SizedBox(height: 20.0),
                                                 InfoItemWidget(
-                                                  iconData: Icons.edit_attributes_sharp,
+                                                  iconData: Icons
+                                                      .edit_attributes_sharp,
                                                   title: "Etat :",
-                                                  description: (demande.etatName ?? "") + (demande.etatId == "11" ? " ( ${demande.dateRdv} )" : ""),
+                                                  description: (demande
+                                                              .etatName ??
+                                                          "") +
+                                                      (demande.etatId == "11"
+                                                          ? " ( ${demande.dateRdv} )"
+                                                          : ""),
                                                 ),
                                                 SizedBox(height: 20.0),
                                                 Divider(),
                                                 SizedBox(height: 20.0),
                                                 Center(
                                                   child: Column(
-                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
                                                     children: [
-                                                      if(Tools.roleId == "1")
-                                                      AdminUserAffectation(
-                                                        demande: demande,
-                                                        currentUser: demande.userId,
-                                                        userList: Tools.userList,
-                                                      ),
+                                                      if (Tools.roleId == "1")
+                                                        AdminUserAffectation(
+                                                          demande: demande,
+                                                          currentUser:
+                                                              demande.userId,
+                                                          userList:
+                                                              Tools.userList,
+                                                        ),
                                                       DemandeBottomActionButton(
                                                         text: "voir",
-                                                        backgroundColor: Colors.blue,
-                                                        icon: Icons.remove_red_eye,
+                                                        backgroundColor:
+                                                            Colors.blue,
+                                                        icon: Icons
+                                                            .remove_red_eye,
                                                         onPressed: () {
-                                                          Tools.selectedDemande = demande;
-                                                          Tools.currentStep = (demande.etape ?? 1) - 1;
+                                                          Tools.selectedDemande =
+                                                              demande;
+                                                          Tools.currentStep =
+                                                              (demande.etape ??
+                                                                      1) -
+                                                                  1;
                                                           navigator.push(
                                                             MaterialPageRoute(
-                                                              builder: (_) => DetailIntervention(),
+                                                              builder: (_) =>
+                                                                  DetailIntervention(),
                                                             ),
                                                           );
                                                         },
                                                       ),
                                                       DemandeBottomActionButton(
                                                         text: "Planifier",
-                                                        backgroundColor: Colors.green,
+                                                        backgroundColor:
+                                                            Colors.green,
                                                         icon: Icons.date_range,
                                                         onPressed: () {
-                                                          Tools.selectedDemande = demande;
-                                                          Tools.currentStep = (demande.etape ?? 1) - 1;
+                                                          Tools.selectedDemande =
+                                                              demande;
+                                                          Tools.currentStep =
+                                                              (demande.etape ??
+                                                                      1) -
+                                                                  1;
                                                           navigator.push(
                                                             MaterialPageRoute(
-                                                              builder: (_) => PlanificationForm(),
+                                                              builder: (_) =>
+                                                                  PlanificationForm(),
                                                             ),
                                                           );
                                                         },
                                                       ),
                                                       DemandeBottomActionButton(
                                                         text: "Annuler",
-                                                        backgroundColor: Colors.red,
+                                                        backgroundColor:
+                                                            Colors.red,
                                                         icon: Icons.cancel,
                                                         onPressed: () {
-                                                          Tools.selectedDemande = demande;
-                                                          Tools.currentStep = (demande.etape ?? 1) - 1;
+                                                          Tools.selectedDemande =
+                                                              demande;
+                                                          Tools.currentStep =
+                                                              (demande.etape ??
+                                                                      1) -
+                                                                  1;
                                                           navigator.push(
                                                             MaterialPageRoute(
-                                                              builder: (_) => AnnulationForm(),
+                                                              builder: (_) =>
+                                                                  AnnulationForm(),
                                                             ),
                                                           );
                                                         },
                                                       ),
                                                       DemandeBottomActionButton(
                                                         text: "Intervention",
-                                                        backgroundColor: Colors.teal,
-                                                        icon: FontAwesomeIcons.screwdriver,
+                                                        backgroundColor:
+                                                            Colors.teal,
+                                                        icon: FontAwesomeIcons
+                                                            .screwdriver,
                                                         onPressed: () {
-                                                          Tools.selectedDemande = demande;
-                                                          Tools.currentStep = (demande.etape ?? 1) - 1;
+                                                          Tools.selectedDemande =
+                                                              demande;
+                                                          Tools.currentStep =
+                                                              (demande.etape ??
+                                                                      1) -
+                                                                  1;
                                                           navigator.push(
                                                             MaterialPageRoute(
-                                                              builder: (_) => InterventionForm(
-                                                                isFromBlocage: false,
+                                                              builder: (_) =>
+                                                                  InterventionForm(
+                                                                isFromBlocage:
+                                                                    false,
                                                               ),
                                                             ),
                                                           );
@@ -482,8 +582,7 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                               ],
                                             ),
                                           ],
-                                        )
-                                    );
+                                        ));
                                   },
                                 ),
                               ),
@@ -495,33 +594,9 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                   ),
                 ],
               ),
-              BlocBuilder<InternetCubit, InternetState>(
-                buildWhen: (previous, current) {
-                  return previous != current;
-                },
+              BlocBuilder<ConnectivityCubit, ConnectivityStatus>(
                 builder: (context, state) {
-                  if (state is InternetDisconnected) {
-                    return Positioned(
-                      bottom: 0,
-                      child: Center(
-                        child: Container(
-                          color: Colors.grey.shade400,
-                          width: MediaQuery.of(context).size.width,
-                          padding: const EdgeInsets.all(0.0),
-                          child: Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                "Pas d'accès internet",
-                                style: TextStyle(color: Colors.red, fontSize: 20),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-                  return Container();
+                  return buildConnectivityStatus(state, context);
                 },
               ),
             ],
@@ -552,8 +627,7 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
 
       FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
         print(
-            'Message title: ${message.notification?.title}, body: ${message
-                .notification?.body}, data: ${message.data}');
+            'Message title: ${message.notification?.title}, body: ${message.notification?.body}, data: ${message.data}');
 
         final items = await Tools.getDemandes();
 
@@ -582,7 +656,7 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
   checkForInitialMessage() async {
     await Firebase.initializeApp();
     RemoteMessage? initialMessage =
-    await FirebaseMessaging.instance.getInitialMessage();
+        await FirebaseMessaging.instance.getInitialMessage();
 
     if (initialMessage != null) {
       print("*** FirebaseMessaging.instance.getInitialMessage() ***");
@@ -655,19 +729,24 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
     if (Tools.currentDemandesEtatFilter.isNotEmpty) {
       items = ResponseGetDemandesList(
           demandes: Tools.demandesListSaved?.demandes?.where((element) {
-            return element.etatId == Tools.currentDemandesEtatFilter;
-          }).toList());
+        return element.etatId == Tools.currentDemandesEtatFilter;
+      }).toList());
     }
     filterListByMap();
+
+    await Tools.callWSGetEtats();
+    await Tools.callWSGetFieldOptions();
   }
 
   Future<void> filterListByCLient(String client) async {
     final items = ResponseGetDemandesList(
         demandes: Tools.demandesListSaved?.demandes?.where((element) {
-          print("check ${element.consommateur}");
-          return element.consommateur?.toLowerCase().contains(client.toLowerCase()) ??
-              false;
-        }).toList());
+      print("check ${element.consommateur}");
+      return element.consommateur
+              ?.toLowerCase()
+              .contains(client.toLowerCase()) ??
+          false;
+    }).toList());
     setState(() {
       demandesList = items;
     });
@@ -680,34 +759,36 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
 
     final items = ResponseGetDemandesList(
         demandes: Tools.demandesListSaved?.demandes?.where((element) {
-          print("check ${element.consommateur}");
+      print("check ${element.consommateur}");
 
-          bool shouldAdd = true;
+      bool shouldAdd = true;
 
-          if (Tools.currentDemandesEtatFilter.isNotEmpty) {
-            shouldAdd = (Tools.currentDemandesEtatFilter == element.etatId);
-          }
+      if (Tools.currentDemandesEtatFilter.isNotEmpty) {
+        shouldAdd = (Tools.currentDemandesEtatFilter == element.etatId);
+      }
 
-          if (filter_client.isNotNullOrEmpty) {
-            if (element.consommateur
+      if (filter_client.isNotNullOrEmpty) {
+        if (element.consommateur
                 ?.toLowerCase()
                 .contains(filter_client.toLowerCase()) ??
-                false) {} else {
-              shouldAdd = false;
-            }
-          }
+            false) {
+        } else {
+          shouldAdd = false;
+        }
+      }
 
-          if (filter_contactClient.isNotNullOrEmpty) {
-            if (element.telMobile
+      if (filter_contactClient.isNotNullOrEmpty) {
+        if (element.telMobile
                 ?.toLowerCase()
                 .contains(filter_contactClient.toLowerCase()) ??
-                false) {} else {
-              shouldAdd = false;
-            }
-          }
+            false) {
+        } else {
+          shouldAdd = false;
+        }
+      }
 
-          return shouldAdd;
-        }).toList());
+      return shouldAdd;
+    }).toList());
 
     setState(() {
       demandesList = items;
@@ -717,12 +798,12 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
   Future<void> filterByType() async {
     final items = ResponseGetDemandesList(
         demandes: Tools.demandesListSaved?.demandes?.where((element) {
-          if (Tools.currentDemandesEtatFilter.isNotEmpty) {
-            return (Tools.currentDemandesEtatFilter == element.etatId);
-          } else {
-            return true;
-          }
-        }).toList());
+      if (Tools.currentDemandesEtatFilter.isNotEmpty) {
+        return (Tools.currentDemandesEtatFilter == element.etatId);
+      } else {
+        return true;
+      }
+    }).toList());
 
     // setState(() {
     //   demandesList = items;
@@ -735,8 +816,9 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
     if (Tools.currentDemandesEtatFilter.isNotEmpty) {
       String currentFilterEtatName = Tools.etats.firstWhere(
             (etat) => etat["etat"] == Tools.currentDemandesEtatFilter,
-        orElse: () => {"title": ""},
-      )["title"] ?? "";
+            orElse: () => {"title": ""},
+          )["title"] ??
+          "";
 
       return "Demandes ${currentFilterEtatName} (${Tools.demandesListSaved?.demandes?.where((element) {
         return Tools.currentDemandesEtatFilter == element.etatId;
@@ -777,10 +859,13 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                   title: 'Demandes disponibles',
                   value: "${Tools.demandesListSaved?.demandes?.length ?? 0}",
                 ),
-                ...Tools.etats.map((etat) => _buildInfoRow(
-                  title: etat["title"]!,
-                  value: "${Tools.demandesListSaved?.demandes?.where((element) => element.etatId == etat["etat"]).length ?? 0}",
-                )).toList(),
+                ...Tools.etats
+                    .map((etat) => _buildInfoRow(
+                          title: etat["title"]!,
+                          value:
+                              "${Tools.demandesListSaved?.demandes?.where((element) => element.etatId == etat["etat"]).length ?? 0}",
+                        ))
+                    .toList(),
               ],
             ),
           ),
@@ -834,7 +919,6 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
   }
 }
 
-
 class AdminUserAffectation extends StatefulWidget {
   final Demande demande;
   final String currentUser;
@@ -877,8 +961,10 @@ class _AdminUserAffectationState extends State<AdminUserAffectation> {
           DropdownButtonFormField<String>(
             value: _selectedUser,
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onChanged: (String? newValue) async {
               setState(() {
@@ -887,7 +973,8 @@ class _AdminUserAffectationState extends State<AdminUserAffectation> {
               });
 
               // Call the API when the user is changed
-              bool isSuccess = await Tools.callAffectUserAPI(newValue!, widget.demande.id);
+              bool isSuccess =
+                  await Tools.callAffectUserAPI(newValue!, widget.demande.id);
 
               // Display a snackbar based on the result
               ScaffoldMessenger.of(context).showSnackBar(
@@ -963,10 +1050,10 @@ class EndDrawerFilterWidget extends StatelessWidget {
       child: SafeArea(
         child: Container(
           decoration: BoxDecoration(
-            // image: DecorationImage(
-            //   image: AssetImage("assets/bg_home.jpeg"),
-            //   fit: BoxFit.cover,
-            // ),
+              // image: DecorationImage(
+              //   image: AssetImage("assets/bg_home.jpeg"),
+              //   fit: BoxFit.cover,
+              // ),
               color: Tools.colorBackground),
           child: SingleChildScrollView(
             child: Column(

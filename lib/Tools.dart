@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:googleapis_auth/auth_io.dart' as auth;
+import 'package:http/http.dart' as http;
+import 'dart:developer' as developer;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
@@ -16,12 +18,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telcabo/DemandeList.dart';
-import 'package:telcabo/custome/ConnectivityCheckBlocBuilder.dart';
+import 'package:telcabo/custome/connectivity_check.dart';
 import 'package:telcabo/models/response_get_demandes.dart';
 import 'package:telcabo/models/response_get_list_field_options.dart';
 import 'package:telcabo/models/response_get_liste_etats.dart';
 import 'custome/response_get_list_users.dart';
-import 'models/response_get_liste_pannes.dart';
 
 /// Utility class for network calls, file handling, and data caching.
 class Tools {
@@ -178,25 +179,6 @@ class Tools {
     }
   }
 
-  /// Fetches the pannes list from API or local file.
-  static Future<ResponseGetListPannes> callWSGetPannes() async {
-    Dio dio = Dio()..interceptors.add(dioLoggerInterceptor);
-    return _callApiWithFallback<ResponseGetListPannes>(
-      apiCall: () async {
-        _log("callWSGetPannes: calling API");
-        final response = await dio.get("$baseUrl/pannes/get_pannes");
-        final decoded = _decodeResponseData(response, "callWSGetPannes");
-        if (decoded != null) {
-          writeToFilePannesList(decoded);
-          return ResponseGetListPannes.fromJson(decoded);
-        }
-        throw Exception("Invalid response from server");
-      },
-      fallback: readfilePannesList,
-      apiName: "callWSGetPannes",
-    );
-  }
-
   static Future<ResponseGetListEtats> callWSGetEtats() async {
     Dio dio = Dio()..interceptors.add(dioLoggerInterceptor);
     return _callApiWithFallback<ResponseGetListEtats>(
@@ -255,7 +237,7 @@ class Tools {
         }
         return ResponseGetDemandesList(demandes: []);
       },
-      fallback: () => ResponseGetDemandesList(demandes: []),
+      fallback: () => readfileDemandesList(),
       apiName: "getDemandes",
     );
   }
@@ -503,16 +485,17 @@ class Tools {
 
   /// Generic file reader with JSON parsing and fallback to empty response.
   static T _readFile<T>(
-    File file,
-    T Function(Map<String, dynamic>) fromJson,
-    T emptyResponse,
-  ) {
+      File file,
+      T Function(dynamic) fromJson, // Accept any JSON structure
+      T emptyResponse,
+      ) {
     _log("Reading file: ${file.path}");
     try {
       String fileContent = file.readAsStringSync();
+      _log("File content: $fileContent");
       if (fileContent.isNotEmpty) {
-        Map<String, dynamic> dataMap = json.decode(fileContent);
-        return fromJson(dataMap);
+        dynamic data = json.decode(fileContent);
+        return fromJson(data); // Allow `fromJson` to handle both Map and List
       } else {
         _log("File is empty: ${file.path}");
       }
@@ -520,15 +503,6 @@ class Tools {
       _logError("Exception while reading ${file.path}", e, st);
     }
     return emptyResponse;
-  }
-
-  /// Reads pannes list from local file.
-  static ResponseGetListPannes readfilePannesList() {
-    return _readFile<ResponseGetListPannes>(
-      filePannesList,
-      (data) => ResponseGetListPannes.fromJson(data),
-      ResponseGetListPannes(pannes: []),
-    );
   }
 
   /// Reads etats list from local file.
@@ -558,17 +532,6 @@ class Tools {
     );
   }
 
-  /// Gets pannes list from either API or local cache.
-  static Future<ResponseGetListPannes>
-      getPannesListFromLocalAndInternet() async {
-    _log("getPannesListFromLocalAndInternet started");
-    if (await tryConnection()) {
-      return callWSGetPannes();
-    } else {
-      return readfilePannesList();
-    }
-  }
-
   /// Gets etats list from either API or local cache.
   static Future<ResponseGetListEtats> getEtatsListFromLocalAndInternet() async {
     _log("getEtatsListFromLocalAndInternet started");
@@ -589,23 +552,21 @@ class Tools {
     }
   }
 
-  /// Checks if the device has internet connectivity.
-  static Future<bool> tryConnection() async {
-    _log("tryConnection started");
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-      _log("No internet connectivity");
-      return false;
-    }
+  static  Future<bool> tryConnection() async {
+    developer.log('tryConnection called ', name: 'Tools');
     try {
-      final response = await InternetAddress.lookup('www.google.com');
-      bool hasConnection =
-          response.isNotEmpty && response[0].rawAddress.isNotEmpty;
-      _log("tryConnection: $hasConnection");
-      return hasConnection;
-    } on SocketException catch (e) {
-      _logError("SocketException in tryConnection", e);
-      return false;
+      // Make a request to a reliable server (e.g., Google) with a timeout of 5 seconds
+      final response = await http
+          .get(Uri.parse('https://www.google.com'))
+          .timeout(Duration(seconds: 5)); // Set a timeout of 5 seconds
+
+      return response.statusCode == 200; // If the request is successful, there is internet access
+    } on TimeoutException {
+      developer.log('Internet check timed out', name: 'Tools');
+      return false; // No internet access if the request times out
+    } catch (e) {
+      developer.log('Error checking internet access: $e', name: 'Tools');
+      return false; // No internet access if there's an error
     }
   }
 
@@ -747,19 +708,6 @@ class Tools {
     }
   }
 
-  /// Returns the current connectivity state.
-  static getStateFromConnectivity() {
-    _log("getStateFromConnectivity started");
-    if (connectivityResult == ConnectivityResult.wifi) {
-      return InternetConnected(connectionType: ConnectionType.wifi);
-    } else if (connectivityResult == ConnectivityResult.mobile) {
-      return InternetConnected(connectionType: ConnectionType.mobile);
-    } else if (connectivityResult == ConnectivityResult.none) {
-      return InternetDisconnected();
-    }
-    return InternetLoading();
-  }
-
   /// Returns an address string based on current location.
   static Future<String> getAddressFromLatLng() async {
     _log("getAddressFromLatLng started");
@@ -881,5 +829,53 @@ class Tools {
     }
 
     debugPrint("========================");
+  }
+}
+
+Widget buildConnectivityStatus(ConnectivityStatus state, BuildContext context) {
+  if (state == ConnectivityStatus.initial) {
+    // Unknown: Display nothing
+    return Container();
+  }
+
+  if (state == ConnectivityStatus.connected) {
+    // Online: Display a green bar
+    return Positioned(
+      bottom: 0,
+      child: Center(
+        child: Container(
+          color: Colors.green,
+          width: MediaQuery.of(context).size.width,
+          padding: EdgeInsets.zero,
+          height: 6,
+        ),
+      ),
+    );
+
+  } else {
+    // Offline: Display a grey bar with a message
+    return Positioned(
+      bottom: 0,
+      child: Center(
+        child: Container(
+          color: Colors.grey.shade400,
+          width: MediaQuery.of(context).size.width,
+          padding: EdgeInsets.zero,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                "Pas d'accès internet", // Message when offline
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

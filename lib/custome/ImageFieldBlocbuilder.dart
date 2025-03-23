@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -200,28 +201,17 @@ class _ImageFieldBlocBuilderState extends State<ImageFieldBlocBuilder> {
     );
   }
 
+
   Widget _buildPlaceholder() {
-    return Image.network(
-      getImagePickerExistImageUrl(),
+    return CachedNetworkImage(
+      imageUrl: getImagePickerExistImageUrl(),
       width: 90,
       height: 90,
       fit: BoxFit.cover,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Center(
-          child: CircularProgressIndicator(
-            value: loadingProgress.expectedTotalBytes != null
-                ? loadingProgress.cumulativeBytesLoaded /
-                loadingProgress.expectedTotalBytes!
-                : null,
-          ),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return const Center(
-          child: Icon(Icons.image_not_supported_outlined, size: 40),
-        );
-      },
+      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+      errorWidget: (context, url, error) => const Center(
+        child: Icon(Icons.image_not_supported_outlined, size: 40),
+      ),
     );
   }
 

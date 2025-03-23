@@ -15,20 +15,17 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:telcabo/Tools.dart';
 import 'package:telcabo/ToolsExtra.dart';
-import 'package:telcabo/custome/ConnectivityCheckBlocBuilder.dart';
-import 'package:telcabo/models/response_get_liste_pannes.dart';
 import 'package:telcabo/ui/InterventionHeaderInfoWidget.dart';
 import 'package:telcabo/ui/LoadingDialog.dart';
 import 'package:telcabo/ui/SuccessScreen.dart';
 import 'package:timelines_plus/timelines_plus.dart';
 
+import 'custome/connectivity_check.dart';
+
 final GlobalKey<ScaffoldState> formStepperScaffoldKey =
     new GlobalKey<ScaffoldState>();
 
 class AnnulationFormBloc extends FormBloc<String, String> {
-  // late final ResponseGetListEtat responseListEtat;
-  // late final ResponseGetListType responseGetListType;
-  late final ResponseGetListPannes responseGetListPannes;
 
   Directory dir = Directory("");
   File fileTraitementList = File("");
@@ -62,16 +59,6 @@ class AnnulationFormBloc extends FormBloc<String, String> {
   @override
   void onLoading() async {
     emitFailure(failureResponse: "loadingTest");
-    Tools.initFiles();
-
-    getApplicationDocumentsDirectory().then((Directory directory) {
-      dir = directory;
-      fileTraitementList = new File(dir.path + "/fileTraitementList.json");
-
-      if (!fileTraitementList.existsSync()) {
-        fileTraitementList.createSync();
-      }
-    });
 
     emitLoaded();
 
@@ -360,9 +347,9 @@ class _AnnulationFormState extends State<AnnulationForm>
         BlocProvider<AnnulationFormBloc>(
           create: (BuildContext context) => AnnulationFormBloc(),
         ),
-        BlocProvider<InternetCubit>(
+        BlocProvider<ConnectivityCubit>(
           create: (BuildContext context) =>
-              InternetCubit(connectivity: Connectivity()),
+              ConnectivityCubit(),
         ),
       ],
       child: Builder(
@@ -375,374 +362,314 @@ class _AnnulationFormState extends State<AnnulationForm>
                 ),
               ),
             ),
-            child: MultiBlocListener(
-              listeners: [
-                BlocListener<InternetCubit, InternetState>(
-                  listener: (context, state) {
-                    if (state is InternetConnected) {
-                      // showSimpleNotification(
-                      //   Text("status : en ligne"),
-                      //   // subtitle: Text("onlime"),
-                      //   background: Colors.green,
-                      //   duration: Duration(seconds: 5),
-                      // );
-                    }
-                    if (state is InternetDisconnected) {
-                      // showSimpleNotification(
-                      //   Text("Offline"),
-                      //   // subtitle: Text("onlime"),
-                      //   background: Colors.red,
-                      //   duration: Duration(seconds: 5),
-                      // );
+            child: Scaffold(
+              key: formStepperScaffoldKey,
+              resizeToAvoidBottomInset: true,
+              floatingActionButtonLocation:
+                  FloatingActionButtonLocation.miniStartFloat,
+
+              //Init Floating Action Bubble
+              floatingActionButton: FloatingActionBubble(
+                // Menu items
+                items: <Bubble>[
+                  // Floating action menu item
+                  Bubble(
+                    title: "WhatssApp",
+                    iconColor: Colors.white,
+                    bubbleColor: Colors.blue,
+                    icon: FontAwesomeIcons.whatsapp,
+                    titleStyle: TextStyle(
+                        fontSize: 16, color: Colors.white),
+                    onPress: () async {
+                      print("share wtsp");
+
+                      String msgShare = Tools.getMsgShare(1);
+
+                      print("msgShare ==> ${msgShare}");
+
+                      // shareToWhatsApp({String msg,String imagePath})
+                      final FlutterSocialShare flutterShareMe = FlutterSocialShare();
+                      await flutterShareMe.shareToWhatsApp(msg: msgShare);
+
+                      /*
+                        var whatsapp = "+212619993849";
+                        var whatsappURl_android =
+                            "whatsapp://send?phone=" + whatsapp + "&text=${Uri.parse(msgShare)}";
+                        var whatappURL_ios =
+                            "https://wa.me/$whatsapp?text=${Uri.parse(msgShare)}";
+                        if (Platform.isIOS) {
+                          // for iOS phone only
+                          if (await canLaunch(whatappURL_ios)) {
+                            await launch(whatappURL_ios, forceSafariVC: false);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: new Text("whatsapp no installed")));
+                          }
+                        } else {
+                          // android , web
+                          if (await canLaunch(whatsappURl_android)) {
+                            await launch(whatsappURl_android);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                content: new Text("whatsapp no installed")));
+                          }
+                        }
+
+                         */
+                      _animationController.reverse();
+                    },
+                  ),
+                  // Floating action menu item
+                  Bubble(
+                    title: "Mail",
+                    iconColor: Colors.white,
+                    bubbleColor: Colors.blue,
+                    icon: Icons.mail_outline,
+                    titleStyle: TextStyle(
+                        fontSize: 16, color: Colors.white),
+                    onPress: () async {
+                      LoadingDialog.show(context);
+                      bool success = await Tools.callWSSendMail();
+                      LoadingDialog.hide(context);
+
+                      if (success) {
+                        CoolAlert.show(
+                            context: context,
+                            type: CoolAlertType.success,
+                            text: "Email Envoyé avec succès",
+                            autoCloseDuration:
+                            Duration(seconds: 5),
+                            title: "Succès");
+                      }
+                      _animationController.reverse();
+                    },
+                  ),
+                  //Floating action menu item
+                ],
+
+                // animation controller
+                animation: _animation,
+
+                // On pressed change animation state
+                onPress: () => _animationController.isCompleted
+                    ? _animationController.reverse()
+                    : _animationController.forward(),
+
+                // Floating Action button Icon color
+                iconColor: Tools.colorSecondary,
+
+                // Flaoting Action button Icon
+                iconData: FontAwesomeIcons.whatsapp,
+                backGroundColor: Colors.white,
+              ),
+
+              appBar: AppBar(
+                leading: Builder(
+                  builder: (BuildContext context) {
+                    final ScaffoldState? scaffold = Scaffold.maybeOf(context);
+                    final ModalRoute<Object?>? parentRoute =
+                        ModalRoute.of(context);
+                    final bool hasEndDrawer = scaffold?.hasEndDrawer ?? false;
+                    final bool canPop = parentRoute?.canPop ?? false;
+
+                    if (hasEndDrawer && canPop) {
+                      return BackButton();
+                    } else {
+                      return SizedBox.shrink();
                     }
                   },
                 ),
-              ],
-              child: Scaffold(
-                key: formStepperScaffoldKey,
-                resizeToAvoidBottomInset: true,
-                floatingActionButtonLocation:
-                    FloatingActionButtonLocation.miniStartFloat,
-
-                //Init Floating Action Bubble
-                floatingActionButton: FloatingActionBubble(
-                  // Menu items
-                  items: <Bubble>[
-                    // Floating action menu item
-                    Bubble(
-                      title: "WhatssApp",
-                      iconColor: Colors.white,
-                      bubbleColor: Colors.blue,
-                      icon: FontAwesomeIcons.whatsapp,
-                      titleStyle: TextStyle(
-                          fontSize: 16, color: Colors.white),
-                      onPress: () async {
-                        print("share wtsp");
-
-                        String msgShare = Tools.getMsgShare(1);
-
-                        print("msgShare ==> ${msgShare}");
-
-                        // shareToWhatsApp({String msg,String imagePath})
-                        final FlutterSocialShare flutterShareMe = FlutterSocialShare();
-                        await flutterShareMe.shareToWhatsApp(msg: msgShare);
-
-                        /*
-                          var whatsapp = "+212619993849";
-                          var whatsappURl_android =
-                              "whatsapp://send?phone=" + whatsapp + "&text=${Uri.parse(msgShare)}";
-                          var whatappURL_ios =
-                              "https://wa.me/$whatsapp?text=${Uri.parse(msgShare)}";
-                          if (Platform.isIOS) {
-                            // for iOS phone only
-                            if (await canLaunch(whatappURL_ios)) {
-                              await launch(whatappURL_ios, forceSafariVC: false);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                  content: new Text("whatsapp no installed")));
-                            }
-                          } else {
-                            // android , web
-                            if (await canLaunch(whatsappURl_android)) {
-                              await launch(whatsappURl_android);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                  content: new Text("whatsapp no installed")));
-                            }
-                          }
-
-                           */
-                        _animationController.reverse();
-                      },
-                    ),
-                    // Floating action menu item
-                    Bubble(
-                      title: "Mail",
-                      iconColor: Colors.white,
-                      bubbleColor: Colors.blue,
-                      icon: Icons.mail_outline,
-                      titleStyle: TextStyle(
-                          fontSize: 16, color: Colors.white),
-                      onPress: () async {
-                        LoadingDialog.show(context);
-                        bool success = await Tools.callWSSendMail();
-                        LoadingDialog.hide(context);
-
-                        if (success) {
-                          CoolAlert.show(
-                              context: context,
-                              type: CoolAlertType.success,
-                              text: "Email Envoyé avec succès",
-                              autoCloseDuration:
-                              Duration(seconds: 5),
-                              title: "Succès");
-                        }
-                        _animationController.reverse();
-                      },
-                    ),
-                    //Floating action menu item
-                  ],
-
-                  // animation controller
-                  animation: _animation,
-
-                  // On pressed change animation state
-                  onPress: () => _animationController.isCompleted
-                      ? _animationController.reverse()
-                      : _animationController.forward(),
-
-                  // Floating Action button Icon color
-                  iconColor: Tools.colorSecondary,
-
-                  // Flaoting Action button Icon
-                  iconData: FontAwesomeIcons.whatsapp,
-                  backGroundColor: Colors.white,
-                ),
-
-                appBar: AppBar(
-                  leading: Builder(
-                    builder: (BuildContext context) {
-                      final ScaffoldState? scaffold = Scaffold.maybeOf(context);
-                      final ModalRoute<Object?>? parentRoute =
-                          ModalRoute.of(context);
-                      final bool hasEndDrawer = scaffold?.hasEndDrawer ?? false;
-                      final bool canPop = parentRoute?.canPop ?? false;
-
-                      if (hasEndDrawer && canPop) {
-                        return BackButton();
-                      } else {
-                        return SizedBox.shrink();
-                      }
+                title: Text('Annulation de la demande'),
+                actions: <Widget>[
+                  // NamedIcon(
+                  //     text: '',
+                  //     iconData: _type == StepperType.horizontal
+                  //         ? Icons.swap_vert
+                  //         : Icons.swap_horiz,
+                  //     onTap: _toggleType),
+                  ValueListenableBuilder(
+                    valueListenable: commentaireCuuntValueNotifer,
+                    builder: (BuildContext context, int commentaireCount,
+                        Widget? child) {
+                      return NamedIcon(
+                        text: '',
+                        iconData: Icons.comment,
+                        notificationCount: commentaireCount,
+                        onTap: () {
+                          formStepperScaffoldKey.currentState
+                              ?.openEndDrawer();
+                        },
+                      );
                     },
-                  ),
-                  title: Text('Annulation de la demande'),
-                  actions: <Widget>[
-                    // NamedIcon(
-                    //     text: '',
-                    //     iconData: _type == StepperType.horizontal
-                    //         ? Icons.swap_vert
-                    //         : Icons.swap_horiz,
-                    //     onTap: _toggleType),
-                    ValueListenableBuilder(
-                      valueListenable: commentaireCuuntValueNotifer,
-                      builder: (BuildContext context, int commentaireCount,
-                          Widget? child) {
-                        return NamedIcon(
-                          text: '',
-                          iconData: Icons.comment,
-                          notificationCount: commentaireCount,
-                          onTap: () {
-                            formStepperScaffoldKey.currentState
-                                ?.openEndDrawer();
-                          },
-                        );
-                      },
-                    )
-                  ],
-                ),
-                endDrawer: EndDrawerWidget(),
-                body: SafeArea(
-                  child: FormBlocListener<AnnulationFormBloc, String, String>(
-                    onLoading: (context, state) {
-                      print("FormBlocListener onLoading");
+                  )
+                ],
+              ),
+              endDrawer: EndDrawerWidget(),
+              body: SafeArea(
+                child: FormBlocListener<AnnulationFormBloc, String, String>(
+                  onLoading: (context, state) {
+                    print("FormBlocListener onLoading");
+                    LoadingDialog.show(context);
+                  },
+                  onLoaded: (context, state) {
+                    print("FormBlocListener onLoaded");
+                    LoadingDialog.hide(context);
+                  },
+                  onLoadFailed: (context, state) {
+                    print("FormBlocListener onLoadFailed");
+                    LoadingDialog.hide(context);
+                  },
+                  onSubmissionCancelled: (context, state) {
+                    print("FormBlocListener onSubmissionCancelled");
+                    LoadingDialog.hide(context);
+                  },
+                  onSubmitting: (context, state) {
+                    print("FormBlocListener onSubmitting");
+                    LoadingDialog.show(context);
+                  },
+                  onSuccess: (context, state) {
+                    print("FormBlocListener onSuccess");
+                    LoadingDialog.hide(context);
+
+                    commentaireCuuntValueNotifer.value =
+                        Tools.selectedDemande?.commentaires?.length ?? 0;
+                    CoolAlert.show(
+                      context: context,
+                      type: CoolAlertType.error,
+                      text: "Enregistré avec succès",
+                      // autoCloseDuration: Duration(seconds: 2),
+                      title: "Succès",
+                    );
+
+                    Tools.currentStep = state.currentStep;
+                    context.read<AnnulationFormBloc>().clearInputs();
+
+                    if (state.stepCompleted == state.lastStep) {
+                      Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (_) => SuccessScreen()));
+                    }
+                  },
+                  onFailure: (context, state) {
+                    print("FormBlocListener onFailure");
+
+                    if (state.failureResponse == "loadingTest") {
                       LoadingDialog.show(context);
-                    },
-                    onLoaded: (context, state) {
-                      print("FormBlocListener onLoaded");
-                      LoadingDialog.hide(context);
-                    },
-                    onLoadFailed: (context, state) {
-                      print("FormBlocListener onLoadFailed");
-                      LoadingDialog.hide(context);
-                    },
-                    onSubmissionCancelled: (context, state) {
-                      print("FormBlocListener onSubmissionCancelled");
-                      LoadingDialog.hide(context);
-                    },
-                    onSubmitting: (context, state) {
-                      print("FormBlocListener onSubmitting");
-                      LoadingDialog.show(context);
-                    },
-                    onSuccess: (context, state) {
-                      print("FormBlocListener onSuccess");
-                      LoadingDialog.hide(context);
+                      return;
+                    }
 
+                    if (state.failureResponse == "loadingTestFinish") {
+                      LoadingDialog.hide(context);
+                      return;
+                    }
+
+                    LoadingDialog.hide(context);
+
+                    if (state.failureResponse == "sameStep") {
                       commentaireCuuntValueNotifer.value =
                           Tools.selectedDemande?.commentaires?.length ?? 0;
+
                       CoolAlert.show(
                         context: context,
-                        type: CoolAlertType.error,
+                        type: CoolAlertType.success,
                         text: "Enregistré avec succès",
                         // autoCloseDuration: Duration(seconds: 2),
                         title: "Succès",
                       );
-
-                      Tools.currentStep = state.currentStep;
-                      context.read<AnnulationFormBloc>().clearInputs();
-
-                      if (state.stepCompleted == state.lastStep) {
-                        Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (_) => SuccessScreen()));
-                      }
-                    },
-                    onFailure: (context, state) {
-                      print("FormBlocListener onFailure");
-
-                      if (state.failureResponse == "loadingTest") {
-                        LoadingDialog.show(context);
-                        return;
-                      }
-
-                      if (state.failureResponse == "loadingTestFinish") {
-                        LoadingDialog.hide(context);
-                        return;
-                      }
-
-                      LoadingDialog.hide(context);
-
-                      if (state.failureResponse == "sameStep") {
-                        commentaireCuuntValueNotifer.value =
-                            Tools.selectedDemande?.commentaires?.length ?? 0;
-
-                        CoolAlert.show(
-                          context: context,
-                          type: CoolAlertType.success,
-                          text: "Enregistré avec succès",
-                          // autoCloseDuration: Duration(seconds: 2),
-                          title: "Succès",
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(state.failureResponse!)));
-                      }
-                    },
-                    onSubmissionFailed: (context, state) {
-                      print("FormBlocListener onSubmissionFailed ${state}");
-                      // LoadingDialog.hide(context);
-                    },
-                    child: Stack(
-                      children: [
-                        StepperFormBlocBuilder<AnnulationFormBloc>(
-                          formBloc: context.read<AnnulationFormBloc>(),
-                          type: _type,
-                          physics: ClampingScrollPhysics(),
-                          controlsBuilder: (
-                            BuildContext context,
-                            VoidCallback? onStepContinue,
-                            VoidCallback? onStepCancel,
-                            int step,
-                            FormBloc formBloc,
-                          ) {
-                            return Column(
-                              children: <Widget>[
-                                const SizedBox(height: 20), // Add consistent spacing at the top
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center, // Center the button horizontally
-                                  children: <Widget>[
-                                    Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Consistent padding
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            print("Button clicked");
-                                            formBloc.submit();
-                                          },
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              const Icon(Icons.save, size: 20), // Add an icon for visual appeal
-                                              const SizedBox(width: 8), // Space between icon and text
-                                              Text(
-                                                'Enregistrer',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                  fontSize: 18.0,
-                                                  fontWeight: FontWeight.w600, // Bold text for better readability
-                                                ),
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(state.failureResponse!)));
+                    }
+                  },
+                  onSubmissionFailed: (context, state) {
+                    print("FormBlocListener onSubmissionFailed ${state}");
+                    // LoadingDialog.hide(context);
+                  },
+                  child: Stack(
+                    children: [
+                      StepperFormBlocBuilder<AnnulationFormBloc>(
+                        formBloc: context.read<AnnulationFormBloc>(),
+                        type: _type,
+                        physics: ClampingScrollPhysics(),
+                        controlsBuilder: (
+                          BuildContext context,
+                          VoidCallback? onStepContinue,
+                          VoidCallback? onStepCancel,
+                          int step,
+                          FormBloc formBloc,
+                        ) {
+                          return Column(
+                            children: <Widget>[
+                              const SizedBox(height: 20), // Add consistent spacing at the top
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center, // Center the button horizontally
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Consistent padding
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          print("Button clicked");
+                                          formBloc.submit();
+                                        },
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(Icons.save, size: 20), // Add an icon for visual appeal
+                                            const SizedBox(width: 8), // Space between icon and text
+                                            Text(
+                                              'Enregistrer',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 18.0,
+                                                fontWeight: FontWeight.w600, // Bold text for better readability
                                               ),
-                                            ],
-                                          ),
-                                          style: ElevatedButton.styleFrom(
-                                            minimumSize: const Size(200, 50), // Button size
-                                            padding: const EdgeInsets.symmetric(vertical: 14.0), // Internal padding
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(25.0), // Rounded corners
                                             ),
-                                            elevation: 5, // Shadow for depth
-                                            backgroundColor: Tools.colorPrimary, // Primary color
-                                            foregroundColor: Colors.white, // Text/icon color
-                                          ),
+                                          ],
                                         ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            );
-                          },
-                          stepsBuilder: (formBloc) {
-                            return [
-                              _step1(formBloc!),
-                              // _step2(formBloc),
-                              // _step3(formBloc),
-                            ];
-                          },
-                          // onStepTapped: (FormBloc? formBloc, int step) {
-                          //   print("onStepTapped");
-                          //   if (step >
-                          //       (Tools.selectedDemande?.etape ?? 1) - 1) {
-                          //     return;
-                          //   }
-                          //   Tools.currentStep = step;
-                          //   print(formBloc);
-                          //   formBloc?.updateCurrentStep(step);
-                          //
-                          //   // formBloc?.emit(FormBlocLoaded(currentStep: Tools.currentStep));
-                          // },
-                        ),
-                        BlocBuilder<InternetCubit, InternetState>(
-                          builder: (context, state) {
-                            print("BlocBuilder **** InternetCubit ${state}");
-                            if (state is InternetConnected &&
-                                state.connectionType == ConnectionType.wifi) {
-                              // return Text(
-                              //   'Wifi',
-                              //   style: TextStyle(color: Colors.green, fontSize: 30),
-                              // );
-                            } else if (state is InternetConnected &&
-                                state.connectionType == ConnectionType.mobile) {
-                              // return Text(
-                              //   'Mobile',
-                              //   style: TextStyle(color: Colors.yellow, fontSize: 30),
-                              // );
-                            } else if (state is InternetDisconnected) {
-                              return Positioned(
-                                bottom: 0,
-                                child: Center(
-                                  child: Container(
-                                    color: Colors.grey.shade400,
-                                    width: MediaQuery.of(context).size.width,
-                                    padding: const EdgeInsets.all(0.0),
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                          "Pas d'accès internet",
-                                          style: TextStyle(
-                                              color: Colors.red, fontSize: 20),
+                                        style: ElevatedButton.styleFrom(
+                                          minimumSize: const Size(200, 50), // Button size
+                                          padding: const EdgeInsets.symmetric(vertical: 14.0), // Internal padding
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(25.0), // Rounded corners
+                                          ),
+                                          elevation: 5, // Shadow for depth
+                                          backgroundColor: Tools.colorPrimary, // Primary color
+                                          foregroundColor: Colors.white, // Text/icon color
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            }
-                            // return CircularProgressIndicator();
-                            return Container();
-                          },
-                        ),
-                      ],
-                    ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                        stepsBuilder: (formBloc) {
+                          return [
+                            _step1(formBloc!),
+                            // _step2(formBloc),
+                            // _step3(formBloc),
+                          ];
+                        },
+                        // onStepTapped: (FormBloc? formBloc, int step) {
+                        //   print("onStepTapped");
+                        //   if (step >
+                        //       (Tools.selectedDemande?.etape ?? 1) - 1) {
+                        //     return;
+                        //   }
+                        //   Tools.currentStep = step;
+                        //   print(formBloc);
+                        //   formBloc?.updateCurrentStep(step);
+                        //
+                        //   // formBloc?.emit(FormBlocLoaded(currentStep: Tools.currentStep));
+                        // },
+                      ),
+                      BlocBuilder<ConnectivityCubit, ConnectivityStatus>(
+                        builder: (context, state) {
+                          return buildConnectivityStatus(state, context);
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),

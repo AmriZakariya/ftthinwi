@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -17,16 +18,14 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image/image.dart' as imagePLugin;
 import 'package:image_picker/image_picker.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:telcabo/Tools.dart';
 import 'package:telcabo/ToolsExtra.dart';
-import 'package:telcabo/custome/ConnectivityCheckBlocBuilder.dart';
 import 'package:telcabo/custome/ImageFieldBlocbuilder.dart';
-import 'package:telcabo/custome/QrScannerTextFieldBlocBuilder.dart';
-import 'package:telcabo/custome/SignatureFieldBlocBuilder.dart';
+import 'package:telcabo/custome/connectivity_check.dart';
 import 'package:telcabo/models/response_get_list_field_options.dart';
 import 'package:telcabo/models/response_get_liste_etats.dart';
-import 'package:telcabo/models/response_get_liste_pannes.dart';
 import 'package:telcabo/ui/InterventionHeaderInfoWidget.dart';
 import 'package:telcabo/ui/LoadingDialog.dart';
 import 'package:telcabo/ui/SuccessScreen.dart';
@@ -39,8 +38,6 @@ final GlobalKey<ScaffoldState> formStepperScaffoldKey =
     new GlobalKey<ScaffoldState>();
 
 class InterventionBlockageFormBLoc extends FormBloc<String, String> {
-  // late final ResponseGetListEtat responseListEtat;
-  // late final ResponseGetListType responseGetListType;
   late final ResponseGetListEtats responseGetListEtats;
   late final ResponseGetFieldOptions responseGetFieldOptions;
 
@@ -301,18 +298,10 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
   @override
   void onLoading() async {
     emitFailure(failureResponse: "loadingTest");
-    Tools.initFiles();
-    getApplicationDocumentsDirectory().then((Directory directory) {
-      dir = directory;
-      fileTraitementList = new File(dir.path + "/fileTraitementList.json");
 
-      if (!fileTraitementList.existsSync()) {
-        fileTraitementList.createSync();
-      }
-    });
     try {
       responseGetFieldOptions =
-          await Tools.getFieldOptionsFromLocalAndInternet();
+          await Tools.readfileFieldOptions();
       // Update dropdowns
       updateDropdownItems(
         fieldOptions: responseGetFieldOptions.fieldOptions,
@@ -570,7 +559,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
     try {
 
       var responseGetFieldOptions =
-      await Tools.getFieldOptionsFromLocalAndInternet();
+      await Tools.readfileFieldOptions();
 
       // Update dropdowns dynamically
       updateDropdownItemsData(
@@ -707,6 +696,7 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
 
   late Animation<double> _animation;
   late AnimationController _animationController;
+  ConnectivityStatus? _previousState; // Track the previous state
 
   @override
   void initState() {
@@ -729,9 +719,9 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
         BlocProvider<InterventionBlockageFormBLoc>(
           create: (BuildContext context) => InterventionBlockageFormBLoc(),
         ),
-        BlocProvider<InternetCubit>(
+        BlocProvider<ConnectivityCubit>(
           create: (BuildContext context) =>
-              InternetCubit(connectivity: Connectivity()),
+              ConnectivityCubit(),
         ),
       ],
       child: Builder(
@@ -746,24 +736,33 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
             ),
             child: MultiBlocListener(
               listeners: [
-                BlocListener<InternetCubit, InternetState>(
-                  listener: (context, state) {
-                    if (state is InternetConnected) {
-                      // showSimpleNotification(
-                      //   Text("status : en ligne"),
-                      //   // subtitle: Text("onlime"),
-                      //   background: Colors.green,
-                      //   duration: Duration(seconds: 5),
-                      // );
+                BlocListener<ConnectivityCubit, ConnectivityStatus>(
+                  listener: (context, state) async {
+                    // Skip the first state (initial state)
+                    if (_previousState != null && _previousState != state) {
+                      if (state == ConnectivityStatus.connected) {
+                        log('Showing toast: Internet Connected', name: 'ConnectivityScreen');
+                        showSimpleNotification(
+                          Text("Status : En ligne, synchronisation en cours"),
+                          background: Colors.green,
+                          duration: Duration(seconds: 5),
+                          position: NotificationPosition.bottom,
+                        );
+
+                        await Tools.readFileTraitementList(); // Your custom logic
+                      } else if (state == ConnectivityStatus.disconnected) {
+                        log('Showing toast: No Internet Connection', name: 'ConnectivityScreen');
+                        showSimpleNotification(
+                          Text("Status : Hors ligne"),
+                          background: Colors.red,
+                          duration: Duration(seconds: 5),
+                          position: NotificationPosition.bottom,
+                        );
+                      }
                     }
-                    if (state is InternetDisconnected) {
-                      // showSimpleNotification(
-                      //   Text("Offline"),
-                      //   // subtitle: Text("onlime"),
-                      //   background: Colors.red,
-                      //   duration: Duration(seconds: 5),
-                      // );
-                    }
+
+                    // Update the previous state
+                    _previousState = state;
                   },
                 ),
               ],
@@ -1095,45 +1094,9 @@ class _InterventionBlockageFormState extends State<InterventionBlockageForm>
                             // formBloc?.emit(FormBlocLoaded(currentStep: Tools.currentStep));
                           },
                         ),
-                        BlocBuilder<InternetCubit, InternetState>(
+                        BlocBuilder<ConnectivityCubit, ConnectivityStatus>(
                           builder: (context, state) {
-                            print("BlocBuilder **** InternetCubit ${state}");
-                            if (state is InternetConnected &&
-                                state.connectionType == ConnectionType.wifi) {
-                              // return Text(
-                              //   'Wifi',
-                              //   style: TextStyle(color: Colors.green, fontSize: 30),
-                              // );
-                            } else if (state is InternetConnected &&
-                                state.connectionType == ConnectionType.mobile) {
-                              // return Text(
-                              //   'Mobile',
-                              //   style: TextStyle(color: Colors.yellow, fontSize: 30),
-                              // );
-                            } else if (state is InternetDisconnected) {
-                              return Positioned(
-                                bottom: 0,
-                                child: Center(
-                                  child: Container(
-                                    color: Colors.grey.shade400,
-                                    width: MediaQuery.of(context).size.width,
-                                    padding: const EdgeInsets.all(0.0),
-                                    child: Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                          "Pas d'accès internet",
-                                          style: TextStyle(
-                                              color: Colors.red, fontSize: 20),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-                            // return CircularProgressIndicator();
-                            return Container();
+                            return buildConnectivityStatus(state, context);
                           },
                         ),
                       ],

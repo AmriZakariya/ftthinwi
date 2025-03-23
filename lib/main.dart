@@ -27,6 +27,8 @@ void main() async {
   );
 
   Tools.initFiles();
+  await Tools.callWSGetEtats();
+  await Tools.callWSGetFieldOptions();
   // NotificationPermissions.requestNotificationPermissions(
   //     iosSettings: const NotificationSettingsIos(
   //         sound: true, badge: true, alert: true))
@@ -206,10 +208,14 @@ class _MyAppState extends State<MyApp> {
 
     // checkForInitialMessage();
   }
-
   void checkInternet() async {
-    Tools.connectivityResult = await (Connectivity().checkConnectivity());
+    List<ConnectivityResult> results = await Connectivity().checkConnectivity();
 
+    if (results.isNotEmpty) {
+      Tools.connectivityResult = results.first;  // Assign first result
+    } else {
+      Tools.connectivityResult = ConnectivityResult.none;  // Fallback if empty
+    }
   }
 }
 
