@@ -388,7 +388,7 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                 GestureDetector(
                                                   onTap: () {
                                                     launch(
-                                                        "tel://${demande.telMobile ?? ""}");
+                                                        "tel://ivr_${demande.telMobile ?? ""}");
                                                   },
                                                   child: InfoItemWidget(
                                                     iconData: Icons.phone,
@@ -755,6 +755,8 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
   Future<void> filterListByMap() async {
     print("call function filterListByMap()");
     String filter_client = Tools.searchFilter?["client"] ?? "";
+    String filter_etatDemande =
+        Tools.searchFilter?["etatDemande"] ?? "";
     String filter_contactClient = Tools.searchFilter?["contactClient"] ?? "";
 
     final items = ResponseGetDemandesList(
@@ -771,6 +773,16 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
         if (element.consommateur
                 ?.toLowerCase()
                 .contains(filter_client.toLowerCase()) ??
+            false) {
+        } else {
+          shouldAdd = false;
+        }
+      }
+
+      if (filter_etatDemande.isNotNullOrEmpty) {
+        if (element.etatName
+                .toLowerCase()
+                .contains(filter_etatDemande.toLowerCase()) ??
             false) {
         } else {
           shouldAdd = false;
@@ -1075,9 +1087,9 @@ class SearchFIeldsFormBloc extends FormBloc<String, String> {
 
   // final offre = TextFieldBloc(
   //     name: "offre", initialValue: Tools.searchFilter?["offre"] ?? "");
-  final typeDemande = TextFieldBloc(
-      name: "typeDemande",
-      initialValue: Tools.searchFilter?["typeDemande"] ?? "");
+  final etatDemande = TextFieldBloc(
+      name: "etatDemande",
+      initialValue: Tools.searchFilter?["etatDemande"] ?? "");
   final contactClient = TextFieldBloc(
       name: "contactClient",
       initialValue: Tools.searchFilter?["contactClient"] ?? "");
@@ -1085,7 +1097,7 @@ class SearchFIeldsFormBloc extends FormBloc<String, String> {
   SearchFIeldsFormBloc() : super() {
     addFieldBlocs(fieldBlocs: [
       client,
-      typeDemande,
+      etatDemande,
       contactClient,
     ]);
   }
@@ -1177,13 +1189,13 @@ class SearchFieldFormWidget extends StatelessWidget {
                         ),
                       ),
                       TextFieldBlocBuilder(
-                        textFieldBloc: formBloc.typeDemande,
+                        textFieldBloc: formBloc.etatDemande,
                         decoration: const InputDecoration(
-                          labelText: 'Type demande ',
+                          labelText: 'Etat demande ',
                           prefixIcon: Padding(
                             padding: const EdgeInsets.only(top: 10, left: 12),
                             child: FaIcon(
-                              FontAwesomeIcons.tag,
+                              FontAwesomeIcons.list,
                               // size: 18,
                             ),
                           ),

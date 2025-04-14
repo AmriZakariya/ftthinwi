@@ -14,7 +14,7 @@ class ConnectivityCubit extends Cubit<ConnectivityStatus> {
   ConnectivityCubit() : super(ConnectivityStatus.initial) {
     developer.log('ConnectivityCubit initialized', name: 'ConnectivityCubit');
     _init();
-    // _startPeriodicCheck();
+    _startPeriodicCheck();
   }
 
   Future<void> _init() async {
@@ -74,7 +74,7 @@ class ConnectivityCubit extends Cubit<ConnectivityStatus> {
 
   void _startPeriodicCheck() {
     // Check internet access every 10 seconds
-    _periodicCheckTimer = Timer.periodic(Duration(seconds: 20), (timer) async {
+    _periodicCheckTimer = Timer.periodic(Duration(seconds: 30), (timer) async {
       developer.log('Running periodic internet check', name: 'ConnectivityCubit');
       final hasInternet = await _checkInternetAccess();
       developer.log("hasInternet: ${hasInternet}", name: 'ConnectivityCubit');

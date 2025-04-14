@@ -319,7 +319,17 @@ class Tools {
         List traitementListResult = [];
 
         for (var element in traitementList) {
-          var isUpdated = await callWsAddMobileFromLocale(jsonDecode(element));
+          var isUpdated = false;
+          Map<String, dynamic> jsonMapContent = jsonDecode(element);
+          if (jsonMapContent["data_source"] == "INTERVENTION") {
+            isUpdated = await callWsAddMobileFromLocale(jsonMapContent);
+          }else if(jsonMapContent["data_source"] == "BLOCkAGE"){
+            isUpdated = await callWsBlockageMobileFromLocale(jsonMapContent);
+          }else if(jsonMapContent["data_source"] == "PLANIFICATION"){
+            isUpdated = await callWsPlanificationFromLocale(jsonMapContent);
+          }else if(jsonMapContent["data_source"] == "ANNULATION"){
+            isUpdated = await callWsAnnulationFromLocale(jsonMapContent);
+          }
           if (!isUpdated) {
             traitementListResult.add(element);
           }
@@ -345,6 +355,11 @@ class Tools {
     final splitted = jsonMapContent[field].split(";;");
     String imagePath = splitted[0];
     String imageName = splitted[1];
+
+    // return if imagePath or imageName is empty or null
+    if (imagePath.isEmpty || imageName.isEmpty) {
+      return;
+    }
 
     try {
       if (localWatermark) {
@@ -376,7 +391,8 @@ class Tools {
       }
     } catch (e, st) {
       _logError("_prepareImageField: Exception for field $field", e, st);
-      jsonMapContent[field] = null;
+      // jsonMapContent[field] = null;
+      return;
     }
   }
 
@@ -449,7 +465,8 @@ class Tools {
       "p_nap_fat_bb_ouvert",
       "p_nap_fat_bb_ferme",
       "p_slimbox_ouvert",
-      "p_slimbox_ferme"
+      "p_slimbox_ferme",
+      "signature",
     ];
 
     // Prepare image fields
@@ -479,6 +496,141 @@ class Tools {
       return (apiRespon.data.contains("000"));
     } catch (e, st) {
       _logError("callWsAddMobileFromLocale: Exception", e, st);
+      return false;
+    }
+  }
+
+  /// Calls API to add mobile data from locale.
+  static Future<bool> callWsBlockageMobileFromLocale(
+      Map<String, dynamic> jsonMapContent) async {
+    _log("callWsAddMobileFromLocale started");
+    String currentAddress;
+    try {
+      currentAddress = await getAddressFromLatLng();
+    } catch (e) {
+      _logError("callWsAddMobileFromLocale: Failed to get address", e);
+      return false;
+    }
+
+    String currentDate = jsonMapContent["date"];
+
+    // List of fields that might contain images
+    List<String> imageFields = [
+      "p_trace_avant_1",
+      "p_trace_avant_2",
+      "p_trace_avant_3",
+      "p_trace_avant_4",
+      "p_trace_apres_1",
+      "p_trace_apres_2",
+      "p_trace_apres_3",
+      "p_trace_apres_4",
+      "p_position_plan_1",
+      "p_position_plan_2",
+    ];
+
+    // Prepare image fields
+    for (var field in imageFields) {
+      await _prepareImageField(
+          jsonMapContent, field, currentDate, currentAddress);
+    }
+
+    jsonMapContent.addAll({"isOffline": true});
+    FormData formData = FormData.fromMap(jsonMapContent);
+
+    try {
+      Dio dio = Dio()..interceptors.add(dioLoggerInterceptor);
+      _log("blockage_mobile callWsAddMobileFromLocale: calling API");
+      Response apiRespon = await dio.post(
+        "$baseUrl/traitements/blockage_mobile",
+        data: formData,
+        options: Options(
+          method: "POST",
+          headers: {
+            'Content-Type': 'multipart/form-data;charset=UTF-8',
+          },
+        ),
+      );
+
+      _log("blockage_mobile callWsAddMobileFromLocale: Response ${apiRespon.data}");
+      return (apiRespon.data.contains("000"));
+    } catch (e, st) {
+      _logError("blockage_mobile callWsAddMobileFromLocale: Exception", e, st);
+      return false;
+    }
+  }
+
+  /// Calls API to add mobile data from locale.
+  static Future<bool> callWsPlanificationFromLocale(
+      Map<String, dynamic> jsonMapContent) async {
+    _log("callWsAddMobileFromLocale started");
+    String currentAddress;
+    try {
+      currentAddress = await getAddressFromLatLng();
+    } catch (e) {
+      _logError("callWsAddMobileFromLocale: Failed to get address", e);
+      return false;
+    }
+
+
+    jsonMapContent.addAll({"isOffline": true});
+    FormData formData = FormData.fromMap(jsonMapContent);
+
+    try {
+      Dio dio = Dio()..interceptors.add(dioLoggerInterceptor);
+      _log("blockage_mobile callWsAddMobileFromLocale: calling API");
+      Response apiRespon = await dio.post(
+        "$baseUrl/demandes/planifier_mobile",
+        data: formData,
+        options: Options(
+          method: "POST",
+          headers: {
+            'Content-Type': 'multipart/form-data;charset=UTF-8',
+          },
+        ),
+      );
+
+      _log("blockage_mobile callWsAddMobileFromLocale: Response ${apiRespon.data}");
+      return (apiRespon.data.contains("000"));
+    } catch (e, st) {
+      _logError("blockage_mobile callWsAddMobileFromLocale: Exception", e, st);
+      return false;
+    }
+  }
+
+  /// Calls API to add mobile data from locale.
+  static Future<bool> callWsAnnulationFromLocale(
+      Map<String, dynamic> jsonMapContent) async {
+    _log("callWsAddMobileFromLocale started");
+    String currentAddress;
+    try {
+      currentAddress = await getAddressFromLatLng();
+    } catch (e) {
+      _logError("callWsAddMobileFromLocale: Failed to get address", e);
+      return false;
+    }
+
+
+    jsonMapContent.addAll({"isOffline": true});
+    FormData formData = FormData.fromMap(jsonMapContent);
+
+    try {
+      Dio dio = Dio()..interceptors.add(dioLoggerInterceptor);
+      _log("blockage_mobile callWsAddMobileFromLocale: calling API");
+      Response apiRespon = await dio.post(
+        "$baseUrl/demandes/annuler_mobile",
+        data: formData,
+        options: Options(
+          method: "POST",
+          headers: {
+            'Content-Type': 'multipart/form-data;charset=UTF-8',
+          },
+        ),
+      );
+
+      _log("blockage_mobile callWsAddMobileFromLocale: Response ${apiRespon.data}");
+      return (apiRespon.data.contains("000"));
+    } catch (e, st) {
+      _logError("blockage_mobile callWsAddMobileFromLocale: Exception", e, st);
       return false;
     }
   }

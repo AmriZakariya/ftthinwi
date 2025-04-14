@@ -238,6 +238,7 @@ class PlanificationFormBloc extends FormBloc<String, String> {
 
   bool writeToFileTraitementList(Map jsonMapContent) {
     print("Writing to writeToFileTraitementList!");
+    jsonMapContent["data_source"] = "PLANIFICATION";
 
     // fileTraitementList.writeAsStringSync("");
     // return true;

@@ -503,6 +503,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
   }
 
   Future<bool> writeToFileTraitementList(Map jsonMapContent) async {
+    jsonMapContent["data_source"] = "INTERVENTION";
     print("Writing to writeToFileTraitementList!");
     Directory dir = await getApplicationDocumentsDirectory();
     File fileTraitementList = new File(dir.path + "/fileTraitementList.json");

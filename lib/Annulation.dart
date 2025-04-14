@@ -238,6 +238,7 @@ class AnnulationFormBloc extends FormBloc<String, String> {
   }
 
   bool writeToFileTraitementList(Map jsonMapContent) {
+    jsonMapContent["data_source"] = "ANNULATION";
     print("Writing to writeToFileTraitementList!");
 
     // fileTraitementList.writeAsStringSync("");

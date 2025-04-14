@@ -295,6 +295,70 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
     );
   }
 
+  Future<bool> writeToFileTraitementList(Map jsonMapContent) async {
+    jsonMapContent["data_source"] = "BLOCkAGE";
+    print("Writing to writeToFileTraitementList!");
+    Directory dir = await getApplicationDocumentsDirectory();
+    File fileTraitementList = new File(dir.path + "/fileTraitementList.json");
+
+    try {
+      final fieldBlocMapping = {
+        pTraceAvant_1_inputFieldBloc.name: pTraceAvant_1_inputFieldBloc,
+        pTraceAvant_2_inputFieldBloc.name: pTraceAvant_2_inputFieldBloc,
+        pTraceAvant_3_inputFieldBloc.name: pTraceAvant_3_inputFieldBloc,
+        pTraceAvant_4_inputFieldBloc.name: pTraceAvant_4_inputFieldBloc,
+        pTraceApres_1_InputFieldBloc.name: pTraceApres_1_InputFieldBloc,
+        pTraceApres_2_InputFieldBloc.name: pTraceApres_2_InputFieldBloc,
+        pTraceApres_3_InputFieldBloc.name: pTraceApres_3_InputFieldBloc,
+        pTraceApres_4_InputFieldBloc.name: pTraceApres_4_InputFieldBloc,
+        pPositionPlan_1_InputFieldBloc.name: pPositionPlan_1_InputFieldBloc,
+        pPositionPlan_2_FieldBloc.name: pPositionPlan_2_FieldBloc,
+      };
+
+      for (var mapKey in jsonMapContent.keys) {
+        final fieldBloc = fieldBlocMapping[mapKey];
+        if (fieldBloc != null) {
+          jsonMapContent[mapKey] =
+          "${fieldBloc.value?.path};;${fieldBloc.value?.name}";
+        }
+      }
+
+      String fileContent = fileTraitementList.readAsStringSync();
+      print("file content ==> ${fileContent}");
+
+      if (fileContent.isEmpty) {
+        print("empty file");
+
+        Map emptyMap = {"traitementList": []};
+
+        fileTraitementList.writeAsStringSync(json.encode(emptyMap));
+
+        fileContent = fileTraitementList.readAsStringSync();
+      }
+
+      Map traitementListMap = json.decode(fileContent);
+
+      print("file content decode ==> ${traitementListMap}");
+
+      List traitementList = traitementListMap["traitementList"];
+
+      print("traitementList ==> ${traitementList}");
+      print("jsonMapContent ==> ${jsonMapContent}");
+      traitementList.add(json.encode(jsonMapContent));
+
+      traitementListMap["traitementList"] = traitementList;
+
+      fileTraitementList.writeAsStringSync(json.encode(traitementListMap));
+
+      return true;
+    } catch (e) {
+      print("exeption -- ${e}");
+    }
+
+    return false;
+  }
+
+
   @override
   void onLoading() async {
     emitFailure(failureResponse: "loadingTest");
@@ -521,6 +585,7 @@ class InterventionBlockageFormBLoc extends FormBloc<String, String> {
       } else {
         print('No internet :( Reason:');
         emitFailure(failureResponse: "sameStep");
+        writeToFileTraitementList(formDateValues);
         // emitSuccess();
       }
 
