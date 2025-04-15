@@ -388,7 +388,7 @@ class _DemandeListState extends State<DemandeList> with WidgetsBindingObserver {
                                                 GestureDetector(
                                                   onTap: () {
                                                     launch(
-                                                        "tel://ivr_${demande.telMobile ?? ""}");
+                                                        "tel://0665501780,${demande.telMobile ?? ""}");
                                                   },
                                                   child: InfoItemWidget(
                                                     iconData: Icons.phone,

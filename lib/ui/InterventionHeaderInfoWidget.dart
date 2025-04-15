@@ -71,7 +71,7 @@ class InterventionHeaderInfoClientWidget extends StatelessWidget {
                     GestureDetector(
                       onTap: () {
                         launch(
-                            "tel://ivr_${demande?.telMobile ?? ""}"); // Launch phone dialer
+                            "tel://0665501780,${demande?.telMobile ?? ""}"); // Launch phone dialer
                       },
                       child: InfoItemWidget(
                         icon: const FaIcon(FontAwesomeIcons.phone, size: 18),
@@ -94,7 +94,7 @@ class InterventionHeaderInfoClientWidget extends StatelessWidget {
                     GestureDetector(
                       onTap: () {
                         launch(
-                            "tel://ivr_${demande?.telMobile ?? ""}"); // Launch phone dialer
+                            "tel://0665501780,${demande?.telMobile ?? ""}"); // Launch phone dialer
                       },
                       child: InfoItemWidget(
                         icon: const FaIcon(FontAwesomeIcons.phoneVolume,
