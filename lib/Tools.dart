@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'dart:developer' as developer;
@@ -907,6 +908,14 @@ class Tools {
         return Colors.transparent; // Default color for unknown states
     }
   }
+
+  static String? formatTimeOfDayToDateTimeString(TimeOfDay? timeOfDay) {
+    if (timeOfDay == null) return null;
+    final now = DateTime.now();
+    final dateTime = DateTime(now.year, now.month, now.day, timeOfDay.hour, timeOfDay.minute);
+    return DateFormat('yyyy-MM-dd HH:mm:s').format(dateTime);
+  }
+
 
   static Future<void> signInWithGoogle() async {
     try {

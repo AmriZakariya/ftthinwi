@@ -117,6 +117,14 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     ],
   );
 
+  final plaqueDropDown = SelectFieldBloc<FieldOption, dynamic>(
+    name: "Traitement[plaque_id]",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+    toJson: (value) => value?.id,
+  );
+
   final numSplitterTextField = SelectFieldBloc(
     name: 'Traitement[num_splitter]',
     validators: [
@@ -406,9 +414,21 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     },
   );
 
-  // DateFormat('yyyy-MM-dd HH:mm:s')
-  var dateDebutInstallation =
-      DateFormat('yyyy-MM-dd HH:mm:s').format(DateTime.now());
+  final dateDebutInstallationFieldBloc = InputFieldBloc<TimeOfDay?, Object>(
+    initialValue: TimeOfDay.now(),
+    name: "date_debut",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+  );
+
+  final dateFinInstallationFieldBloc = InputFieldBloc<TimeOfDay?, Object>(
+    initialValue: null,
+    name: "date_fin",
+    validators: [
+      FieldBlocValidators.required,
+    ],
+  );
 
   InterventionFormBLoc() : super(isLoading: true) {
     Tools.currentStep = (Tools.selectedDemande?.etape ?? 1) - 1;
@@ -419,6 +439,9 @@ class InterventionFormBLoc extends FormBloc<String, String> {
     addFieldBlocs(
       step: 0,
       fieldBlocs: [
+        dateDebutInstallationFieldBloc,
+        dateFinInstallationFieldBloc,
+        plaqueDropDown,
         etatsDropDown,
         offreDropDown,
         articleDropDown,
@@ -605,6 +628,11 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         dropdown: etatProvisioningDropDown,
         key: 'etat_provisioning',
       );
+      updateDropdownItems(
+        fieldOptions: responseGetFieldOptions.fieldOptions,
+        dropdown: plaqueDropDown,
+        key: 'plaque',
+      );
 
       updateInputsFromDemande();
       updateValidatorFromDemande();
@@ -788,8 +816,9 @@ class InterventionFormBLoc extends FormBloc<String, String> {
 
       Map<String, dynamic> formDateValues = await state.toJson();
 
-      var dateFinInstallation =
-          DateFormat('yyyy-MM-dd HH:mm:s').format(DateTime.now());
+      TimeOfDay? dateDebutInstallation = dateDebutInstallationFieldBloc.value;
+      TimeOfDay? dateFinInstallation = dateFinInstallationFieldBloc.value;
+
       formDateValues.addAll({
         // "etape": Tools.currentStep + 1,
         "demande_id": Tools.selectedDemande?.id ?? "",
@@ -797,8 +826,8 @@ class InterventionFormBLoc extends FormBloc<String, String> {
         "date": dateNowFormatted,
         "currentAddress": currentAddress,
         // "Traitement[commentaire_sup]": "commentaire_sup"
-        "Traitement[date_debut_installation]": dateDebutInstallation,
-        "Traitement[date_fin_installation]": dateFinInstallation
+        "Traitement[date_debut_installation]": Tools.formatTimeOfDayToDateTimeString(dateDebutInstallation),
+        "Traitement[date_fin_installation]": Tools.formatTimeOfDayToDateTimeString(dateFinInstallation)
       });
 
       print(formDateValues);
@@ -1004,6 +1033,7 @@ class InterventionFormBLoc extends FormBloc<String, String> {
       boiteTypeDropDown: Tools.selectedDemande?.boiteTypeId,
       positionDropDown: Tools.selectedDemande?.positionId,
       etatProvisioningDropDown: Tools.selectedDemande?.etatProvisioningId,
+      plaqueDropDown: Tools.selectedDemande?.plaqueId,
     };
 
     dropdownMappings.forEach((dropdownBloc, selectedId) {
@@ -1588,7 +1618,7 @@ class _InterventionFormState extends State<InterventionForm>
 
   FormBlocStep _step1(InterventionFormBLoc formBloc) {
     return FormBlocStep(
-      title: _buildTitleWithTime(), // Use the custom title widget here
+      title: Text('Intervention'),
       content: Column(
         children: <Widget>[
           InterventionHeaderInfoClientWidget(),
@@ -1596,6 +1626,25 @@ class _InterventionFormState extends State<InterventionForm>
           InterventionHeaderInfoProjectWidget(),
           SizedBox(
             height: 20,
+          ),
+          buildSizedDivider(),
+          TimeFieldBlocBuilder(
+            timeFieldBloc: formBloc.dateDebutInstallationFieldBloc,
+            format: DateFormat('hh:mm a'),
+            initialTime: TimeOfDay.now(),
+            decoration: const InputDecoration(
+              labelText: 'Début intervention',
+              prefixIcon: Icon(Icons.access_time),
+            ),
+          ),
+          TimeFieldBlocBuilder(
+            timeFieldBloc: formBloc.dateFinInstallationFieldBloc,
+            format: DateFormat('hh:mm a'),
+            initialTime: TimeOfDay.now(),
+            decoration: const InputDecoration(
+              labelText: 'Fin intervention',
+              prefixIcon: Icon(Icons.access_time),
+            ),
           ),
           buildSizedDivider(),
           DropdownFieldBlocBuilder<Etat>(
@@ -1664,7 +1713,7 @@ class _InterventionFormState extends State<InterventionForm>
             textFieldBloc: formBloc.cableFibreTextField,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: "Cable fibre :",
+              labelText: "Métrage :",
               prefixIcon: Icon(Icons.cable),
             ),
           ),
@@ -1674,6 +1723,16 @@ class _InterventionFormState extends State<InterventionForm>
             decoration: InputDecoration(
               labelText: "Num fat :",
               prefixIcon: Icon(Icons.numbers),
+            ),
+          ),
+          DropdownFieldBlocBuilder<FieldOption>(
+            selectFieldBloc: formBloc.plaqueDropDown,
+            decoration: const InputDecoration(
+              labelText: 'Plaque :',
+              prefixIcon: Icon(Icons.list),
+            ),
+            itemBuilder: (context, value) => FieldItem(
+              child: Text(value.name ?? ""),
             ),
           ),
           DropdownFieldBlocBuilder(
